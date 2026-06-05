@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Visionneuse BIM & Audit BCF</title>
-
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#007bff">
     
@@ -23,70 +19,71 @@
         body { margin: 0; overflow: hidden; font-family: '-apple-system', 'Segoe UI', sans-serif; background-color: #f0f0f0; }
         #viewer-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* Boutons flottants circulaires (Miniatures) */
-        .fab {
-            background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50%;
-            width: 44px; height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        .fab:hover { transform: scale(1.05); }
-
-        /* Conteneurs pliables */
-        .foldable-container { position: absolute; top: 15px; z-index: 20; display: flex; flex-direction: column; gap: 10px; }
-        #model-container { left: 15px; }
-        #bcf-container { right: 15px; align-items: flex-end; }
-
-        /* Contenu déplié */
-        .panel-content {
-            display: none; background: rgba(255, 255, 255, 0.95); padding: 10px 15px;
+        /* 1. Barre Supérieure Horizontale */
+        #top-bar {
+            position: absolute; top: 15px; left: 15px; right: 15px; z-index: 20;
+            display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.95); padding: 12px 15px;
             border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             backdrop-filter: blur(5px);
         }
-        .panel-content.show { display: block; animation: fadeIn 0.2s; }
+
+        #top-bar input[type="text"] {
+            flex: 1; min-width: 150px; max-width: 300px;
+            padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95em;
+        }
         
-        /* Ligne compacte pour les actions BCF */
-        .compact-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end;}
+        input[type="file"] { display: none; } /* Caché, déclenché par les étiquettes boutons */
         
-        input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em; width: 140px;}
-        input[type="file"] { display: none; } /* Caché, déclenché par les boutons */
-        
-        .btn-action { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        .btn-action { 
+            background: #007bff; color: white; border: none; padding: 10px 15px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em; 
+            text-align: center; white-space: nowrap; transition: 0.2s;
+        }
+        .btn-action:hover { filter: brightness(1.1); }
         .btn-action.success { background: #28a745; }
         .btn-action.danger { background: #dc3545; }
         
-        /* Indicateur de chargement et d'aide */
+        /* 2. Indicateur de statut flottant */
         #status-bar {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.6); color: white; padding: 6px 15px; border-radius: 20px;
             font-size: 0.85em; z-index: 15; pointer-events: none;
         }
 
-        /* Liste des défauts */
+        /* 3. Liste des défauts Fixe (Ne bouge plus) */
         #liste-container {
-            position: absolute; right: 15px; bottom: 15px; z-index: 10;
-            width: 300px; max-height: 50vh; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 10px;
+            position: absolute; top: 85px; bottom: 75px; right: 15px; width: 340px;
+            overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 10px;
+            padding-right: 5px; /* Pour la barre de défilement */
         }
-        .defaut-item { background: rgba(255,255,255,0.95); border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-left: 4px solid #dc3545;}
         
-        /* Modal d'annotation (Formulaire) */
+        .defaut-item { 
+            background: rgba(255,255,255,0.95); border-radius: 10px; padding: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-left: 5px solid #dc3545;
+        }
+        .defaut-img-min { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-top: 8px; border: 1px solid #ddd; }
+
+        /* 4. Boutons du bas (Ancrés) */
+        #btn-supprimer-tout { position: absolute; bottom: 15px; left: 15px; z-index: 20; display: none; }
+        #btn-exporter-bcf { position: absolute; bottom: 15px; right: 15px; z-index: 20; display: none; }
+        
+        /* Modal d'annotation */
         #modal-annotation {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 100; width: 320px; box-sizing: border-box;
+            background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+            z-index: 100; width: 320px; box-sizing: border-box;
         }
         #modal-annotation input, #modal-annotation textarea, #modal-annotation select { width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 15px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;}
-        #preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;}
+        #preview-img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee;}
         .modal-actions { display: flex; gap: 10px; }
         .modal-actions button { flex: 1; padding: 10px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer;}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
         /* Adaptation Mobile */
         @media (max-width: 768px) {
-            #liste-container { left: 15px; width: auto; max-height: 35vh; }
-            .compact-row { flex-direction: column; align-items: flex-end; }
-            input[type="text"] { width: 100%; }
+            #top-bar input[type="text"] { order: 3; width: 100%; max-width: none; flex: 100%; }
+            #status-bar { top: 130px; }
+            #liste-container { top: 130px; left: 15px; right: 15px; width: auto; }
         }
     </style>
 
@@ -103,34 +100,26 @@
 </head>
 <body>
 
-    <div id="status-bar">👆 Double-cliquez pour ajouter un défaut</div>
-
-    <div id="model-container" class="foldable-container">
-        <button class="fab" id="btn-toggle-model" title="Ouvrir Modèle">🏗️</button>
-        <div class="panel-content" id="model-content">
-            <label class="btn-action" style="display:block; text-align:center;">
-                📂 Charger un fichier IFC
-                <input type="file" id="upload-ifc" accept=".ifc, .ifczip">
-            </label>
-        </div>
+    <div id="top-bar">
+        <label class="btn-action">
+            📂 Ouvrir IFC
+            <input type="file" id="upload-ifc" accept=".ifc, .ifczip">
+        </label>
+        
+        <input type="text" id="nom-projet" placeholder="Nom du projet / Ouvrage">
+        
+        <label class="btn-action">
+            📥 Ouvrir BCF
+            <input type="file" id="upload-bcf" accept=".bcf,.bcfzip">
+        </label>
     </div>
 
-    <div id="bcf-container" class="foldable-container">
-        <button class="fab" id="btn-toggle-bcf" title="Actions BCF">📋</button>
-        <div class="panel-content" id="bcf-content">
-            <div class="compact-row">
-                <input type="text" id="nom-projet" placeholder="Nom du projet">
-                <label class="btn-action">
-                    📥 Importer BCF
-                    <input type="file" id="upload-bcf" accept=".bcf,.bcfzip">
-                </label>
-                <button class="btn-action success" id="btn-exporter-bcf" style="display:none;">💾 Exporter</button>
-                <button class="btn-action danger" id="btn-supprimer-tout" style="display:none;" title="Vider">🗑️</button>
-            </div>
-        </div>
-    </div>
+    <div id="status-bar">👆 Double-cliquez sur le modèle pour annoter</div>
 
     <div id="liste-container"></div>
+
+    <button id="btn-supprimer-tout" class="btn-action danger" title="Vider l'audit">🗑️ Tout supprimer</button>
+    <button id="btn-exporter-bcf" class="btn-action success">💾 Exporter BCF</button>
 
     <div id="modal-annotation">
         <h3 style="margin-top:0; font-size: 1.1em;">Nouveau Défaut</h3>
@@ -168,30 +157,17 @@
         const materiauMarqueur = new MeshBasicMaterial({ color: 0xdc3545 });
         const geometrieMarqueur = new SphereGeometry(0.25, 16, 16);
 
-        // --- Logique UI (Plier / Déplier) ---
-        document.getElementById('btn-toggle-model').addEventListener('click', () => {
-            document.getElementById('model-content').classList.toggle('show');
-            document.getElementById('bcf-content').classList.remove('show');
-        });
-
-        document.getElementById('btn-toggle-bcf').addEventListener('click', () => {
-            document.getElementById('bcf-content').classList.toggle('show');
-            document.getElementById('model-content').classList.remove('show');
-        });
-
         function gererAffichageBoutons() {
             const hasDefauts = listeDefauts.length > 0;
             document.getElementById('btn-exporter-bcf').style.display = hasDefauts ? 'block' : 'none';
             document.getElementById('btn-supprimer-tout').style.display = hasDefauts ? 'block' : 'none';
-            // Clignotement léger du bouton BCF s'il y a des données non exportées
-            document.getElementById('btn-toggle-bcf').style.boxShadow = hasDefauts ? "0 0 15px rgba(40, 167, 69, 0.6)" : "0 4px 10px rgba(0,0,0,0.2)";
         }
 
         // --- 1. CHARGEMENT IFC ---
         document.getElementById('upload-ifc').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            document.getElementById('status-bar').textContent = "⏳ Chargement en cours...";
+            document.getElementById('status-bar').textContent = "⏳ Chargement de la maquette...";
             
             try {
                 let fichierFinal = file; 
@@ -203,10 +179,7 @@
                 }
                 const url = URL.createObjectURL(fichierFinal);
                 await viewer.IFC.loadIfcUrl(url, true);
-                
-                // Replier le menu modèle
-                document.getElementById('model-content').classList.remove('show');
-                document.getElementById('status-bar').textContent = "👆 Double-cliquez pour ajouter un défaut";
+                document.getElementById('status-bar').textContent = "✅ Maquette chargée. Double-cliquez pour annoter.";
 
             } catch (err) { alert("Erreur IFC : " + err.message); } 
         });
@@ -267,6 +240,11 @@
                             defautsParGuid[guid].dirY = parseFloat(dir.querySelector("Y").textContent);
                             defautsParGuid[guid].dirZ = parseFloat(dir.querySelector("Z").textContent);
                         }
+                    } else if (path.endsWith('snapshot.png')) {
+                        const blob = await zip.files[path].async("blob");
+                        const reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = () => { defautsParGuid[guid].image = reader.result; }
                     }
                 }
 
@@ -284,18 +262,15 @@
                         }
                     });
                     gererAffichageBoutons();
-                    document.getElementById('bcf-content').classList.remove('show');
-                    document.getElementById('status-bar').textContent = "👆 Double-cliquez pour ajouter un défaut";
+                    document.getElementById('status-bar').textContent = "✅ BCF Importé.";
                 }, 500);
 
             } catch (err) { alert("Erreur BCF"); console.error(err); }
         });
 
         // --- 3. ANNOTATION PAR DÉFAUT (Double Clic) ---
-        // Plus besoin de bouton, l'événement est toujours actif.
         window.addEventListener('dblclick', async (event) => {
-            // Empêche de déclencher l'annotation si on clique sur l'interface (boutons, formulaires)
-            if(event.target.closest('.foldable-container') || event.target.closest('#modal-annotation') || event.target.closest('#liste-container')) return;
+            if(event.target.closest('#top-bar') || event.target.closest('#modal-annotation') || event.target.closest('#liste-container') || event.target.closest('.btn-action')) return;
 
             const intersection = viewer.context.castRayIfc(event);
             if (!intersection) return; 
@@ -351,18 +326,19 @@
             donneeTemp = null;
         });
 
-        // --- 4. AFFICHAGE LISTE ---
+        // --- 4. AFFICHAGE LISTE AVEC MINIATURES ---
         function ajouterAuPanneau(def) {
             const div = document.createElement('div');
             div.className = "defaut-item";
             
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="font-weight:bold; color:#333; font-size: 0.9em;">${def.titre}</div>
-                    <button class="btn-action danger" style="padding: 2px 6px; font-size: 0.8em; margin:0;" title="Supprimer">X</button>
+                    <div style="font-weight:bold; color:#333; font-size: 0.95em;">${def.titre}</div>
+                    <button class="btn-action danger" style="padding: 4px 8px; font-size: 0.8em; margin:0;" title="Supprimer">X</button>
                 </div>
-                <div style="font-size:0.8em; color:#666; margin: 5px 0;">${def.desc}</div>
-                <div class="btn-voler" style="font-size:0.85em; color:#007bff; cursor:pointer; font-weight:bold;">👁️ Voler vers la caméra</div>
+                <div style="font-size:0.85em; color:#666; margin: 5px 0;">${def.desc}</div>
+                <div class="btn-voler" style="font-size:0.9em; color:#007bff; cursor:pointer; font-weight:bold; display:inline-block;">👁️ Voler vers la caméra</div>
+                ${def.image ? `<img class="defaut-img-min" src="${def.image}">` : ''}
             `;
 
             div.querySelector('.btn-voler').addEventListener('click', () => {
@@ -383,6 +359,7 @@
             });
 
             document.getElementById('liste-container').appendChild(div);
+            // Scroll automatique vers le bas pour voir le nouveau défaut
             document.getElementById('liste-container').scrollTop = document.getElementById('liste-container').scrollHeight;
         }
 
