@@ -2,27 +2,36 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Visionneuse BIM & Audit BCF</title>
     
-    <script src="./libs/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: #f0f0f0; }
+        body { margin: 0; overflow: hidden; font-family: '-apple-system', 'Segoe UI', sans-serif; background-color: #f0f0f0; }
         #viewer-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
         .panel {
             position: absolute; z-index: 10; background: rgba(255, 255, 255, 0.95);
-            padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 320px;
+            padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); width: 320px;
+            box-sizing: border-box; backdrop-filter: blur(5px);
         }
         #ui-panel { top: 20px; left: 20px; }
         #audit-panel { top: 20px; right: 20px; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column;}
         
+        /* Bouton flottant pour réafficher le panneau d'import */
+        #btn-toggle-ui {
+            display: none; position: absolute; top: 20px; left: 20px; z-index: 20;
+            background: rgba(255, 255, 255, 0.95); border: none; padding: 12px 15px; 
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: bold; cursor: pointer;
+        }
+
         h2 { margin-top: 0; color: #2c3e50; font-size: 1.2em; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-        input[type="text"], input[type="file"] { margin-top: 5px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; background: #fafafa;}
+        input[type="text"], input[type="file"], select { margin-top: 5px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; background: #fafafa;}
         input[type="file"] { border: 2px dashed #007bff; }
         
-        button { background: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; transition: 0.2s;}
+        /* Amélioration des boutons pour le tactile */
+        button { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; transition: 0.2s; min-height: 44px;}
         button:hover { filter: brightness(1.1); }
         button.active { background: #dc3545; animation: pulse 1.5s infinite; }
         button.success { background: #28a745; }
@@ -30,27 +39,51 @@
         
         #modal-annotation {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 25px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; width: 350px;
+            background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 100; width: 350px;
+            box-sizing: border-box;
         }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
-        #preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px;}
+        #preview-img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 10px;}
         
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         #liste-defauts { list-style: none; padding: 0; margin-top: 10px; overflow-y: auto; flex-grow: 1;}
-        .defaut-item { background: #fff; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #007bff; transition: 0.2s;}
-        .defaut-item:hover { background: #f1f3f5; }
+        .defaut-item { background: #fff; border: 1px solid #dee2e6; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #007bff;}
         .defaut-img-min { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-top: 8px; border: 1px solid #eee; }
         
         .zone-import { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd; }
         
-        /* Boutons d'actions sur les défauts */
-        .btn-voler { font-size:0.85em; color:#007bff; cursor:pointer; font-weight:bold; }
-        .btn-voler:hover { text-decoration:underline; }
-        .btn-supprimer { background:none; border:none; padding:0; margin:0; cursor:pointer; font-size:1.1em; opacity:0.7; transition:0.2s; width:auto; }
-        .btn-supprimer:hover { opacity:1; transform:scale(1.1); filter: brightness(1); }
+        .btn-voler { font-size:0.9em; color:#007bff; cursor:pointer; font-weight:bold; padding-top: 5px; display: inline-block;}
+        .btn-supprimer { background:none; border:none; padding:0; margin:0; cursor:pointer; font-size:1.3em; width:auto; min-height: auto;}
+        
+        /* =======================================================
+           🚀 ADAPTATION SPÉCIFIQUE IPHONE / SMARTPHONE
+           ======================================================= */
+        @media (max-width: 768px) {
+            .panel {
+                width: 94vw;
+                left: 3vw !important; /* Centre horizontalement */
+                right: auto !important;
+                padding: 15px;
+            }
+            #ui-panel { top: 15px; }
+            #btn-toggle-ui { top: 15px; left: 3vw; }
+            
+            #audit-panel {
+                top: auto; 
+                bottom: 15px; /* Colle au bas de l'écran */
+                max-height: 40vh; /* Ne prend que 40% de l'écran pour laisser la 3D visible */
+                border-radius: 16px;
+            }
+            
+            #modal-annotation {
+                width: 90vw;
+                padding: 20px;
+                max-height: 90vh; /* Évite de déborder si le clavier iOS est ouvert */
+                overflow-y: auto;
+            }
+        }
     </style>
 
     <script type="importmap">
@@ -63,10 +96,10 @@
             }
         }
     </script>
-	
-
 </head>
 <body>
+
+    <button id="btn-toggle-ui">📁 Changer de modèle</button>
 
     <div class="panel" id="ui-panel">
         <h2>🏗️ 1. Modèle 3D</h2>
@@ -89,15 +122,15 @@
 
         <div>
             <label style="font-size:0.9em; font-weight:bold; color:#444;">➕ Ajouter un défaut</label>
-            <button id="btn-mode-annotation">🎯 Activer le laser d'annotation</button>
+            <button id="btn-mode-annotation">🎯 Activer le laser</button>
             <p style="font-size:0.8em; color:#666; display:none; margin-bottom:0;" id="aide-clic">Double-cliquez sur le modèle 3D.</p>
         </div>
         
         <ul id="liste-defauts"></ul>
         
         <div id="actions-globales" style="display:none; margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
-            <button id="btn-supprimer-tout" class="danger">🗑️ Supprimer tous les défauts</button>
-            <button id="btn-exporter-bcf" class="success">💾 Exporter le lot (.bcfzip)</button>
+            <button id="btn-supprimer-tout" class="danger">🗑️ Tout supprimer</button>
+            <button id="btn-exporter-bcf" class="success">💾 Exporter (.bcfzip)</button>
         </div>
     </div>
 
@@ -105,7 +138,7 @@
         <h3 style="margin-top:0;">Nouveau Défaut</h3>
         <img id="preview-img" src="" alt="Capture">
         <div class="form-group"><label>Titre</label><input type="text" id="titre-defaut"></div>
-        <div class="form-group"><label>Description</label><textarea id="desc-defaut" rows="2"></textarea></div>
+        <div class="form-group"><label>Description</label><textarea id="desc-defaut" rows="2" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 10px;"></textarea></div>
         <div class="form-group">
             <label>Type</label>
             <select id="type-defaut"><option value="Issue">Erreur (Issue)</option><option value="Warning">Alerte</option></select>
@@ -123,10 +156,10 @@
         const container = document.getElementById('viewer-container');
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
-        //viewer.IFC.setWasmPath('./');
-		// On remonte de 2 dossiers (es2022, puis web-ifc), puis on redescend dans IFCViewer
-viewer.IFC.setWasmPath('../../IFCViewer/');
-		
+        
+        // Ton chemin fonctionnel conservé
+        viewer.IFC.setWasmPath('../../IFCViewer/');
+
         let modeAnnotationActif = false;
         let listeDefauts = [];
         let donneeTemp = null; 
@@ -138,6 +171,12 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             const actionsGlobales = document.getElementById('actions-globales');
             actionsGlobales.style.display = listeDefauts.length > 0 ? 'block' : 'none';
         }
+
+        // Gestion de l'affichage du panneau UI pour libérer l'écran
+        document.getElementById('btn-toggle-ui').addEventListener('click', () => {
+            document.getElementById('ui-panel').style.display = 'block';
+            document.getElementById('btn-toggle-ui').style.display = 'none';
+        });
 
         // ==========================================
         // 1. CHARGEMENT IFC
@@ -157,12 +196,17 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                 }
                 const url = URL.createObjectURL(fichierFinal);
                 await viewer.IFC.loadIfcUrl(url, true);
-            } catch (err) { alert("Erreur IFC : " + err.message); } 
+                
+                // Masquer le panneau d'import après succès pour libérer la vue mobile
+                document.getElementById('ui-panel').style.display = 'none';
+                document.getElementById('btn-toggle-ui').style.display = 'block';
+
+            } catch (err) { alert("Erreur IFC : " + err.message); console.error(err); } 
             finally { document.getElementById('chargement').style.display = 'none'; }
         });
 
         // ==========================================
-        // 2. IMPORT BCF EXISTANT (CONVERSION Z-up -> Y-up)
+        // 2. IMPORT BCF EXISTANT
         // ==========================================
         document.getElementById('upload-bcf').addEventListener('change', async (event) => {
             const file = event.target.files[0];
@@ -175,7 +219,6 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                 for (const path in zip.files) {
                     if (zip.files[path].dir) continue;
                     
-                    // Lecture du nom du projet si présent
                     if (path === 'project.bcf') {
                         const xml = await zip.files[path].async("string");
                         const doc = new DOMParser().parseFromString(xml, "text/xml");
@@ -188,7 +231,7 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
 
                     const parts = path.split('/');
                     const guid = parts[0];
-                    if (!guid || path.indexOf('/') === -1) continue; // Ignorer les fichiers à la racine (sauf project.bcf traité au-dessus)
+                    if (!guid || path.indexOf('/') === -1) continue; 
                     
                     if (!defautsParGuid[guid]) defautsParGuid[guid] = { id: guid, type: "Issue" };
 
@@ -200,13 +243,9 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                         let descriptionReelle = doc.querySelector("Description")?.textContent || "";
                         const matchLaser = descriptionReelle.match(/\[LASER:([^;]+);([^;]+);([^\]]+)\]/);
                         if (matchLaser) {
-                            // CONVERSION LASER : BCF(Z-up) vers Web(Y-up)
-                            const bcfX = parseFloat(matchLaser[1]);
-                            const bcfY = parseFloat(matchLaser[2]);
-                            const bcfZ = parseFloat(matchLaser[3]);
-                            defautsParGuid[guid].x = bcfX;
-                            defautsParGuid[guid].y = bcfZ;
-                            defautsParGuid[guid].z = -bcfY;
+                            defautsParGuid[guid].x = parseFloat(matchLaser[1]);
+                            defautsParGuid[guid].y = parseFloat(matchLaser[2]);
+                            defautsParGuid[guid].z = parseFloat(matchLaser[3]);
                             descriptionReelle = descriptionReelle.replace(matchLaser[0], '').trim();
                         }
                         defautsParGuid[guid].desc = descriptionReelle;
@@ -219,20 +258,12 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                         const up = doc.querySelector("CameraUpVector");
 
                         if (pos && dir && up) {
-                            // CONVERSION CAMÉRA : BCF(Z-up) vers Web(Y-up)
-                            const bX = parseFloat(pos.querySelector("X").textContent);
-                            const bY = parseFloat(pos.querySelector("Y").textContent);
-                            const bZ = parseFloat(pos.querySelector("Z").textContent);
-                            defautsParGuid[guid].camX = bX;
-                            defautsParGuid[guid].camY = bZ;
-                            defautsParGuid[guid].camZ = -bY;
-
-                            const dX = parseFloat(dir.querySelector("X").textContent);
-                            const dY = parseFloat(dir.querySelector("Y").textContent);
-                            const dZ = parseFloat(dir.querySelector("Z").textContent);
-                            defautsParGuid[guid].dirX = dX;
-                            defautsParGuid[guid].dirY = dZ;
-                            defautsParGuid[guid].dirZ = -dY;
+                            defautsParGuid[guid].camX = parseFloat(pos.querySelector("X").textContent);
+                            defautsParGuid[guid].camY = parseFloat(pos.querySelector("Y").textContent);
+                            defautsParGuid[guid].camZ = parseFloat(pos.querySelector("Z").textContent);
+                            defautsParGuid[guid].dirX = parseFloat(dir.querySelector("X").textContent);
+                            defautsParGuid[guid].dirY = parseFloat(dir.querySelector("Y").textContent);
+                            defautsParGuid[guid].dirZ = parseFloat(dir.querySelector("Z").textContent);
                         }
                     } else if (path.endsWith('snapshot.png')) {
                         const blob = await zip.files[path].async("blob");
@@ -242,7 +273,6 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                     }
                 }
 
-                // Affichage et recréation des sphères
                 setTimeout(() => {
                     Object.values(defautsParGuid).forEach(def => {
                         if(def.titre) {
@@ -276,7 +306,7 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
                 btnMode.classList.add("active");
                 aideClic.style.display = "block";
             } else {
-                btnMode.textContent = "🎯 Activer le laser d'annotation";
+                btnMode.textContent = "🎯 Activer le laser";
                 btnMode.classList.remove("active");
                 aideClic.style.display = "none";
             }
@@ -324,7 +354,6 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             donneeTemp.desc = document.getElementById('desc-defaut').value;
             donneeTemp.type = document.getElementById('type-defaut').value;
 
-            // Création de la boule rouge
             const marqueur = new Mesh(geometrieMarqueur, materiauMarqueur);
             marqueur.position.set(donneeTemp.x, donneeTemp.y, donneeTemp.z);
             viewer.context.getScene().add(marqueur);
@@ -349,31 +378,26 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             li.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="font-weight:bold; color:#333;">${def.titre}</div>
-                    <button class="btn-supprimer" title="Supprimer ce défaut">🗑️</button>
+                    <button class="btn-supprimer" title="Supprimer">🗑️</button>
                 </div>
                 <div style="font-size:0.85em; color:#666; margin-bottom:5px;">${def.desc}</div>
                 <div class="btn-voler">👁️ Voler vers la caméra</div>
                 ${def.image ? `<img class="defaut-img-min" src="${def.image}">` : ''}
             `;
 
-            // Action : Téléportation
             li.querySelector('.btn-voler').addEventListener('click', () => {
                 if (def.camX !== undefined) {
                     const cibleX = def.camX + def.dirX;
                     const cibleY = def.camY + def.dirY;
                     const cibleZ = def.camZ + def.dirZ;
-
                     viewer.context.ifcCamera.cameraControls.setLookAt(
-                        def.camX, def.camY, def.camZ,
-                        cibleX, cibleY, cibleZ,
-                        true 
+                        def.camX, def.camY, def.camZ, cibleX, cibleY, cibleZ, true 
                     );
                 }
             });
 
-            // Action : SUPPRESSION INDIVIDUELLE
             li.querySelector('.btn-supprimer').addEventListener('click', () => {
-                if(confirm("Voulez-vous vraiment supprimer ce défaut ?")) {
+                if(confirm("Supprimer ce défaut ?")) {
                     listeDefauts = listeDefauts.filter(d => d.id !== def.id);
                     if (def.mesh3D) { viewer.context.getScene().remove(def.mesh3D); }
                     li.remove();
@@ -382,11 +406,14 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             });
 
             document.getElementById('liste-defauts').appendChild(li);
+            
+            // Fait défiler le panneau vers le bas pour voir le nouveau défaut
+            const panel = document.getElementById('audit-panel');
+            panel.scrollTop = panel.scrollHeight;
         }
 
-        // Action : SUPPRESSION GLOBALE
         document.getElementById('btn-supprimer-tout').addEventListener('click', () => {
-            if(confirm("Voulez-vous vraiment supprimer TOUS les défauts de cet audit ?")) {
+            if(confirm("Tout supprimer ?")) {
                 listeDefauts.forEach(def => {
                     if (def.mesh3D) { viewer.context.getScene().remove(def.mesh3D); }
                 });
@@ -404,7 +431,6 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             const zip = new JSZip();
             zip.file("bcf.version", `<?xml version="1.0" encoding="UTF-8"?><Version VersionId="2.1"/>`);
 
-            // Intégration du nom du projet dans le BCF
             const nomProjet = document.getElementById('nom-projet').value || "Projet_Sans_Nom";
             const projetId = generateUUID();
             zip.file("project.bcf", `<?xml version="1.0" encoding="UTF-8"?><ProjectExtension><Project><ProjectId>${projetId}</ProjectId><Name>${nomProjet}</Name></Project></ProjectExtension>`);
@@ -412,13 +438,9 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             listeDefauts.forEach((def, index) => {
                 const folder = zip.folder(def.id);
                 
-                // CONVERSION DU LASER (Three.js vers BCF Z-up)
                 let codeLaser = "";
                 if (def.x !== undefined) {
-                    const bcfLaserX = def.x;
-                    const bcfLaserY = -def.z;
-                    const bcfLaserZ = def.y;
-                    codeLaser = `\n\n[LASER:${bcfLaserX.toFixed(4)};${bcfLaserY.toFixed(4)};${bcfLaserZ.toFixed(4)}]`;
+                    codeLaser = `\n\n[LASER:${def.x.toFixed(4)};${def.y.toFixed(4)};${def.z.toFixed(4)}]`;
                 }
                 const descriptionFinale = (def.desc || "") + codeLaser;
 
@@ -426,24 +448,11 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
 <Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${descriptionFinale}</Description></Topic></Markup>`);
                 
                 if (def.camX !== undefined) {
-                    // CONVERSION DE LA CAMÉRA (Three.js vers BCF Z-up)
-                    const bcfCamX = def.camX;
-                    const bcfCamY = -def.camZ;
-                    const bcfCamZ = def.camY;
-
-                    const bcfDirX = def.dirX;
-                    const bcfDirY = -def.dirZ;
-                    const bcfDirZ = def.dirY;
-
-                    const bcfUpX = def.upX;
-                    const bcfUpY = -def.upZ;
-                    const bcfUpZ = def.upY;
-
                     folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?>
 <VisualizationInfo><PerspectiveCamera>
-    <CameraViewPoint><X>${bcfCamX}</X><Y>${bcfCamY}</Y><Z>${bcfCamZ}</Z></CameraViewPoint>
-    <CameraDirection><X>${bcfDirX}</X><Y>${bcfDirY}</Y><Z>${bcfDirZ}</Z></CameraDirection>
-    <CameraUpVector><X>${bcfUpX}</X><Y>${bcfUpY}</Y><Z>${bcfUpZ}</Z></CameraUpVector>
+    <CameraViewPoint><X>${def.camX}</X><Y>${def.camY}</Y><Z>${def.camZ}</Z></CameraViewPoint>
+    <CameraDirection><X>${def.dirX}</X><Y>${def.dirY}</Y><Z>${def.dirZ}</Z></CameraDirection>
+    <CameraUpVector><X>${def.upX}</X><Y>${def.upY}</Y><Z>${def.upZ}</Z></CameraUpVector>
     <FieldOfView>60</FieldOfView>
 </PerspectiveCamera></VisualizationInfo>`);
                 }
@@ -461,8 +470,6 @@ viewer.IFC.setWasmPath('../../IFCViewer/');
             const content = await zip.generateAsync({ type: "blob" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(content);
-            
-            // Le nom du fichier téléchargé reprend le nom du projet
             const nomFichierNettoye = nomProjet.replace(/[^a-zA-Z0-9_-]/g, '_');
             link.download = `Audit_${nomFichierNettoye}_${new Date().toISOString().slice(0,10)}.bcfzip`;
             link.click();
