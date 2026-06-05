@@ -124,7 +124,10 @@
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
         //viewer.IFC.setWasmPath('./');
-viewer.IFC.setWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.36/');
+//viewer.IFC.setWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.36/');
+		const cheminWasm = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+viewer.IFC.setWasmPath(cheminWasm);
+		
         let modeAnnotationActif = false;
         let listeDefauts = [];
         let donneeTemp = null; 
