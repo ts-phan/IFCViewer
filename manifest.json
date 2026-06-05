@@ -1,7 +1,7 @@
 {
   "name": "Audit Ouvrages BIM",
   "short_name": "Audit BIM",
-  "start_url": "./IFCViewer.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f0f0",
   "theme_color": "#007bff",
