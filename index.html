@@ -124,6 +124,8 @@
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
         //viewer.IFC.setWasmPath('./');
+		// On remonte de 2 dossiers (es2022, puis web-ifc), puis on redescend dans IFCViewer
+viewer.IFC.setWasmPath('../../IFCViewer/');
 		
         let modeAnnotationActif = false;
         let listeDefauts = [];
