@@ -124,9 +124,16 @@
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
         //viewer.IFC.setWasmPath('./');
-//viewer.IFC.setWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.36/');
-		const cheminWasm = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-viewer.IFC.setWasmPath(cheminWasm);
+
+		// On récupère l'URL complète de la page actuelle (ex: https://ts-phan.github.io/IFCViewer/index.html)
+const urlActuelle = window.location.href;
+
+// On coupe au dernier '/' pour obtenir le dossier absolu (ex: https://ts-phan.github.io/IFCViewer/)
+const cheminAbsoluWasm = urlActuelle.substring(0, urlActuelle.lastIndexOf('/') + 1);
+
+// En donnant une URL complète avec 'https://', le moteur WebAssembly arrête de deviner le chemin
+viewer.IFC.setWasmPath(cheminAbsoluWasm);
+
 		
         let modeAnnotationActif = false;
         let listeDefauts = [];
