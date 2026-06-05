@@ -2,7 +2,7 @@ const CACHE_NAME = 'audit-bim-v1';
 
 // Fichiers à mettre en cache immédiatement au premier lancement
 const urlsToCache = [
-  './IFCViewer.html',
+  './index.html',
   './manifest.json'
 ];
 
