@@ -124,7 +124,7 @@
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
         //viewer.IFC.setWasmPath('./');
-		viewer.IFC.setWasmPath('/IFCViewer/');
+	viewer.IFC.setWasmPath('https://unpkg.com/web-ifc@0.0.36/');
 
         let modeAnnotationActif = false;
         let listeDefauts = [];
