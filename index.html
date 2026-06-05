@@ -53,16 +53,16 @@
         .btn-supprimer:hover { opacity:1; transform:scale(1.1); filter: brightness(1); }
     </style>
 
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.135.0/build/three.module.js",
-            "three/": "https://unpkg.com/three@0.135.0/",
-            "web-ifc": "https://unpkg.com/web-ifc@0.0.36/web-ifc-api.js",
-            "web-ifc-viewer": "https://unpkg.com/web-ifc-viewer@1.0.218/dist/web-ifc-viewer.js"
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.135.0",
+                "three/": "https://esm.sh/three@0.135.0/",
+                "web-ifc": "https://esm.sh/web-ifc@0.0.36?env=browser",
+                "web-ifc-viewer": "https://esm.sh/web-ifc-viewer@1.0.218?external=three,web-ifc&env=browser"
+            }
         }
-    }
-</script>
+    </script>
 	
 
 </head>
