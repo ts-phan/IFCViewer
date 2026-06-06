@@ -35,14 +35,14 @@
 
         #top-bar input[type="text"] {
             flex: 1; min-width: 100px;
-            padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em;
+            padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.8em;
         }
         
         input[type="file"] { display: none; }
         
         .btn-action { 
             background: #007bff; color: white; border: none; padding: 8px 12px; 
-            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em; 
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8em; 
             text-align: center; white-space: nowrap; transition: 0.2s;
             display: inline-flex; align-items: center; justify-content: center;
         }
@@ -54,7 +54,7 @@
         /* 2. Indicateurs et Boutons flottants */
         #status-bar {
             position: absolute; 
-            top: calc(env(safe-area-inset-top, 10px) + 55px); 
+            top: calc(env(safe-area-inset-top, 10px) + 40px); 
             left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.6); color: white; padding: 6px 15px; border-radius: 20px;
             font-size: 0.8em; z-index: 15; pointer-events: none; white-space: nowrap;
@@ -74,7 +74,7 @@
             position: absolute; 
             /* C'est ici : Zone de sécurité Apple + 10px au-dessus de l'écran */
             bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); 
-            left: 10px; right: 10px; z-index: 20;
+            left: 10px; right: 10px; z-index: 10;
             display: none; 
             flex-direction: column; gap: 6px;
             pointer-events: none; 
