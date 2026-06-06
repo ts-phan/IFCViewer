@@ -61,10 +61,11 @@
         }
         body:not(.menu-closed) #drawer-overlay { display: block; }
 
-        /* ── Bouton hamburger fixe ── */
+        /* ── Bouton hamburger fixe — sous le notch ── */
         #btn-collapse-topbar {
             position: fixed;
-            top: 10px; left: 10px; z-index: 50;
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            left: 10px; z-index: 50;
             background: rgba(255,255,255,0.97);
             border: none; border-radius: 8px;
             width: 38px; height: 38px;
@@ -89,10 +90,10 @@
         .btn-action.danger  { background: #dc3545; }
         .btn-action.warning { background: #ffc107; color: #333; }
 
-        /* ── 2. Status bar + reset ── */
+        /* ── 2. Status bar — sous le notch, aligné avec le hamburger ── */
         #status-bar {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 14px);
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
             left: 58px; right: 14px;
             background: rgba(0,0,0,0.6); color: white; padding: 6px 15px;
             border-radius: 20px; font-size: 0.8em; z-index: 15;
@@ -104,7 +105,8 @@
 
         #btn-reset-view {
             position: fixed;
-            top: 60px; right: 15px; z-index: 15; display: none;
+            top: calc(env(safe-area-inset-top, 0px) + 60px);
+            right: 15px; z-index: 15; display: none;
             background: rgba(255,255,255,0.95); border: none; border-radius: 50%;
             width: 44px; height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             font-size: 1.3em; cursor: pointer; align-items: center; justify-content: center;
@@ -244,7 +246,12 @@
             font-size: 1.3em; color: #ccc; background: #f8f9fa;
         }
         
-        /* Overlay sombre pour les modals */
+        /* Repli explicite si safe-area-inset-top non exposé (Safari navigateur) */
+        @supports (padding-top: constant(safe-area-inset-top)) {
+            #btn-collapse-topbar { top: calc(constant(safe-area-inset-top) + 10px); }
+            #status-bar          { top: calc(constant(safe-area-inset-top) + 10px); }
+            #btn-reset-view      { top: calc(constant(safe-area-inset-top) + 60px); }
+        }
         #modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
             z-index: 90; backdrop-filter: blur(2px);
@@ -303,9 +310,9 @@
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
-            <button id="btn-supprimer-tout">← Tout</button>
+            <button id="btn-supprimer-tout">🗑 ← Tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
-            <button id="btn-exporter-bcf">BCF →</button>
+            <button id="btn-exporter-bcf">BCF → 💾</button>
         </div>
     </div>
 
