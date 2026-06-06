@@ -35,14 +35,14 @@
 
         #top-bar input[type="text"] {
             flex: 1; min-width: 100px;
-            padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em;
+            padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.8em;
         }
         
         input[type="file"] { display: none; }
         
         .btn-action { 
             background: #007bff; color: white; border: none; padding: 8px 12px; 
-            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em; 
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8em; 
             text-align: center; white-space: nowrap; transition: 0.2s;
             display: inline-flex; align-items: center; justify-content: center;
         }
@@ -81,7 +81,7 @@
 
         /* Liste scrollable qui apparaît AU-DESSUS de la barre permanente */
         #liste-container {
-            max-height: 42vh;
+            max-height: 30vh;
             overflow-y: auto;
             display: flex; flex-direction: column; gap: 0;
             background: rgba(248,249,250,0.98);
@@ -113,7 +113,7 @@
         /* Bouton gauche — 5% depuis le bord gauche */
         #btn-supprimer-tout {
             justify-self: start;
-            margin-left: 5%;
+            margin-left: 10%;
             border: none; border-radius: 8px;
             background: #dc3545; color: white;
             font-size: 0.78em; font-weight: bold;
@@ -126,7 +126,7 @@
         /* Bouton droit — 5% depuis le bord droit */
         #btn-exporter-bcf {
             justify-self: end;
-            margin-right: 5%;
+            margin-right: 10%;
             border: none; border-radius: 8px;
             background: #28a745; color: white;
             font-size: 0.78em; font-weight: bold;
@@ -167,7 +167,7 @@
         }
         /* Ligne 1 : titre + badge */
         .defaut-en-tete {
-            font-weight: 700; color: #222; font-size: 0.85em;
+            font-weight: 700; color: #222; font-size: 0.8em;
             display: flex; align-items: center; gap: 5px;
             overflow: hidden;
         }
@@ -252,9 +252,9 @@
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
-            <button id="btn-supprimer-tout">🗑️ Tout supprimer</button>
+            <button id="btn-supprimer-tout">🗑️ Tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
-            <button id="btn-exporter-bcf">💾 Exporter BCF</button>
+            <button id="btn-exporter-bcf">💾 Export BCF</button>
         </div>
     </div>
 
