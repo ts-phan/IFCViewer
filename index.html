@@ -166,15 +166,25 @@
 
         /* Barre permanente — sans padding notch */
         #sheet-bar {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: auto 1fr;
             align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
             background: rgba(255,255,255,0.97);
             box-shadow: 0 -3px 16px rgba(0,0,0,0.15);
             backdrop-filter: blur(10px);
-            padding: 8px 0;
             min-height: 50px;
         }
+        #sheet-bar #btn-supprimer-tout-top {
+            border: none; border-radius: 8px;
+            background: #dc3545; color: white;
+            font-size: 0.78em; font-weight: bold;
+            padding: 7px 11px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+            white-space: nowrap;
+        }
+        #sheet-bar #btn-supprimer-tout-top:active { filter: brightness(0.9); }
 
         /* anciens boutons sheet-bar — conservés pour compatibilité, masqués */
         #btn-exporter-bcf { display: none; }
@@ -314,17 +324,16 @@
         <button class="btn-action danger" id="btn-supprimer-tout-drawer">🗑 Supprimer tout</button>
     </div>
 
-    <!-- Barre top : status + boutons Supprimer tout + Export BCF -->
+    <!-- Barre top : status uniquement -->
     <div id="top-action-bar">
         <div id="status-bar">👆 Double-cliquez sur la maquette pour annoter</div>
-        <button id="btn-supprimer-tout-top" title="Supprimer toutes les annotations">🗑 Tout</button>
-        <button id="btn-exporter-bcf-top" title="Exporter en BCF">BCF 💾</button>
     </div>
     <button id="btn-reset-view" title="Vue globale">🏠</button>
 
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
+            <button id="btn-supprimer-tout-top" title="Supprimer toutes les annotations">🗑 Tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
         </div>
     </div>
@@ -833,11 +842,7 @@
             document.getElementById('btn-supprimer-tout-top').click();
         });
 
-        document.getElementById('btn-exporter-bcf-drawer').addEventListener('click', () => {
-            document.getElementById('btn-exporter-bcf-top').click();
-        });
-
-        document.getElementById('btn-exporter-bcf-top').addEventListener('click', async () => {
+        async function exporterBCF() {
             if (listeDefauts.length === 0) return;
             const zip = new JSZip();
             zip.file("bcf.version", `<?xml version="1.0" encoding="UTF-8"?><Version VersionId="2.1"/>`);
@@ -870,7 +875,9 @@
             link.href = URL.createObjectURL(content);
             link.download = `Audit_${nomProjet.replace(/[^a-zA-Z0-9_-]/g, '_')}_${new Date().toISOString().slice(0,10)}.bcfzip`;
             link.click();
-        });
+        }
+
+        document.getElementById('btn-exporter-bcf-drawer').addEventListener('click', exporterBCF);
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
