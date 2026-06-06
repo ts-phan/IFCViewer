@@ -72,15 +72,12 @@
 
         /* 3. Tiroir Coulissant compact */
         #bottom-sheet {
-            position: absolute;
+            position: fixed;
             bottom: 0; left: 0; right: 0; z-index: 20;
             display: none;
             flex-direction: column;
-            pointer-events: none;
-            /* Transition d'ouverture/fermeture */
-            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            /* Pas de pointer-events:none — le sheet doit être cliquable intégralement */
         }
-        #bottom-sheet > * { pointer-events: auto; }
 
         /* Handle + barre d'actions dans un seul bandeau */
         .sheet-header {
@@ -298,11 +295,57 @@
         const materiauMarqueur = new MeshBasicMaterial({ color: 0xdc3545 });
         const geometrieMarqueur = new SphereGeometry(0.25, 16, 16);
 
+        // --- PERSISTANCE localStorage ---
+        const LS_KEY = 'auditBIM_defauts';
+        const LS_NOM = 'auditBIM_nomProjet';
+
+        function sauvegarder() {
+            // On sérialise sans mesh3D (non sérialisable)
+            const data = listeDefauts.map(d => {
+                const { mesh3D, ...rest } = d;
+                return rest;
+            });
+            try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) { console.warn('localStorage plein', e); }
+            const nom = document.getElementById('nom-projet').value;
+            if (nom) localStorage.setItem(LS_NOM, nom);
+        }
+
+        function chargerDepuisLocalStorage() {
+            try {
+                const nomSauve = localStorage.getItem(LS_NOM);
+                if (nomSauve) document.getElementById('nom-projet').value = nomSauve;
+                const raw = localStorage.getItem(LS_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                listeDefauts = data; // mesh3D sera null, recréé après chargement IFC
+                rafraichirListeDefauts();
+                afficherStatut(`📂 ${listeDefauts.length} annotation(s) restaurée(s)`, 5000);
+            } catch(e) { console.warn('Erreur restauration', e); }
+        }
+
+        // Recrée les marqueurs 3D pour les défauts déjà en mémoire (après chargement IFC)
+        function recreerMarqueurs() {
+            listeDefauts.forEach(def => {
+                if (def.x !== undefined && !isNaN(def.x) && !def.mesh3D) {
+                    const marqueur = new Mesh(geometrieMarqueur, materiauMarqueur);
+                    marqueur.position.set(def.x, def.y, def.z);
+                    viewer.context.getScene().add(marqueur);
+                    def.mesh3D = marqueur;
+                }
+            });
+        }
+
         const bottomSheet = document.getElementById('bottom-sheet');
         const btnToggleSheet = document.getElementById('btn-toggle-sheet');
         let isSheetFolded = false;
         
         let timeoutStatut;
+
+        // Restaurer au démarrage
+        chargerDepuisLocalStorage();
+
+        // Sauvegarder le nom de projet à chaque frappe
+        document.getElementById('nom-projet').addEventListener('input', sauvegarder);
 
         // --- Gestion de la barre de statut (masquage automatique) ---
         function afficherStatut(message, autoHideMs = 0) {
@@ -322,6 +365,8 @@
 
         document.getElementById('btn-nouveau').addEventListener('click', () => {
             if(confirm("Créer un nouveau projet ? Cela déchargera la maquette IFC et effacera l'audit en cours.")) {
+                localStorage.removeItem(LS_KEY);
+                localStorage.removeItem(LS_NOM);
                 window.location.reload(); 
             }
         });
@@ -395,6 +440,9 @@
                 camControls.getTarget(t);
                 homeView = { position: p, target: t };
                 document.getElementById('btn-reset-view').style.display = 'flex';
+
+                // Recréer les marqueurs 3D des défauts déjà en mémoire
+                recreerMarqueurs();
 
                 // Disparition de la barre après 15 secondes
                 afficherStatut("✅ Maquette chargée. Double-cliquez pour annoter.", 15000);
@@ -659,6 +707,7 @@
             });
             
             gererAffichageBoutons();
+            sauvegarder();
             if(!idEditionEnCours) setTimeout(() => { conteneur.scrollTop = conteneur.scrollHeight; }, 50);
         }
 
