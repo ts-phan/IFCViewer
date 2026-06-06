@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="Audit BIM">
     <link rel="apple-touch-icon" href="./icon-192.png">
 
+ 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Visionneuse BIM & Audit BCF</title>
@@ -19,72 +20,72 @@
         body { margin: 0; overflow: hidden; font-family: '-apple-system', 'Segoe UI', sans-serif; background-color: #f0f0f0; }
         #viewer-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* 1. Barre Supérieure Horizontale */
+        /* 1. Barre Supérieure : Plus haute, compacte, sur une seule ligne */
         #top-bar {
-            position: absolute; top: 15px; left: 15px; right: 15px; z-index: 20;
-            display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;
-            background: rgba(255, 255, 255, 0.95); padding: 12px 15px;
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 20;
+            display: flex; gap: 8px; justify-content: space-between; align-items: center; 
+            flex-wrap: nowrap; overflow-x: auto; /* Force 1 ligne, scrollable si vraiment trop petit */
+            background: rgba(255, 255, 255, 0.95); padding: 8px 10px;
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             backdrop-filter: blur(5px);
         }
 
         #top-bar input[type="text"] {
-            flex: 1; min-width: 150px; max-width: 300px;
-            padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95em;
+            flex: 1; min-width: 120px;
+            padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em;
         }
         
-        input[type="file"] { display: none; } /* Caché, déclenché par les étiquettes boutons */
+        input[type="file"] { display: none; }
         
         .btn-action { 
-            background: #007bff; color: white; border: none; padding: 10px 15px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em; 
+            background: #007bff; color: white; border: none; padding: 8px 12px; 
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em; 
             text-align: center; white-space: nowrap; transition: 0.2s;
         }
         .btn-action:hover { filter: brightness(1.1); }
         .btn-action.success { background: #28a745; }
         .btn-action.danger { background: #dc3545; }
         
-        /* 2. Indicateur de statut flottant */
+        /* 2. Indicateur de statut remonté */
         #status-bar {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.6); color: white; padding: 6px 15px; border-radius: 20px;
-            font-size: 0.85em; z-index: 15; pointer-events: none;
+            font-size: 0.8em; z-index: 15; pointer-events: none; white-space: nowrap;
         }
 
-        /* 3. Liste des défauts Fixe (Ne bouge plus) */
+        /* 3. Liste des défauts : Fixée en bas, juste au-dessus des boutons finaux */
         #liste-container {
-            position: absolute; top: 85px; bottom: 75px; right: 15px; width: 340px;
-            overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 10px;
-            padding-right: 5px; /* Pour la barre de défilement */
+            position: absolute; top: auto; bottom: 65px; left: 10px; right: 10px; 
+            max-height: 40vh; /* Ne dépasse jamais 40% de l'écran */
+            overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 8px;
+            padding-right: 5px;
+        }
+        
+        /* Ajustement PC pour ne pas prendre toute la largeur en bas */
+        @media (min-width: 769px) {
+            #liste-container { left: auto; width: 350px; }
         }
         
         .defaut-item { 
-            background: rgba(255,255,255,0.95); border-radius: 10px; padding: 12px; 
+            background: rgba(255,255,255,0.95); border-radius: 8px; padding: 10px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-left: 5px solid #dc3545;
         }
-        .defaut-img-min { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-top: 8px; border: 1px solid #ddd; }
+        .defaut-img-min { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-top: 6px; border: 1px solid #ddd; }
 
-        /* 4. Boutons du bas (Ancrés) */
-        #btn-supprimer-tout { position: absolute; bottom: 15px; left: 15px; z-index: 20; display: none; }
-        #btn-exporter-bcf { position: absolute; bottom: 15px; right: 15px; z-index: 20; display: none; }
+        /* 4. Boutons du bas (Ancrés tout en bas) */
+        #btn-supprimer-tout { position: absolute; bottom: 15px; left: 10px; z-index: 20; display: none; }
+        #btn-exporter-bcf { position: absolute; bottom: 15px; right: 10px; z-index: 20; display: none; }
         
         /* Modal d'annotation */
         #modal-annotation {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-            z-index: 100; width: 320px; box-sizing: border-box;
+            background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+            z-index: 100; width: 90vw; max-width: 320px; box-sizing: border-box;
         }
-        #modal-annotation input, #modal-annotation textarea, #modal-annotation select { width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 15px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;}
-        #preview-img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee;}
+        #modal-annotation input, #modal-annotation textarea, #modal-annotation select { width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 12px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;}
+        #preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee;}
         .modal-actions { display: flex; gap: 10px; }
-        .modal-actions button { flex: 1; padding: 10px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer;}
-
-        /* Adaptation Mobile */
-        @media (max-width: 768px) {
-            #top-bar input[type="text"] { order: 3; width: 100%; max-width: none; flex: 100%; }
-            #status-bar { top: 130px; }
-            #liste-container { top: 130px; left: 15px; right: 15px; width: auto; }
-        }
+        .modal-actions button { flex: 1; padding: 10px; border-radius: 6px; border: none; color: white; font-weight: bold; cursor: pointer;}
     </style>
 
     <script type="importmap">
@@ -102,19 +103,19 @@
 
     <div id="top-bar">
         <label class="btn-action">
-            📂 Ouvrir IFC
+            📂 IFC
             <input type="file" id="upload-ifc" accept=".ifc, .ifczip">
         </label>
         
-        <input type="text" id="nom-projet" placeholder="Nom du projet / Ouvrage">
+        <input type="text" id="nom-projet" placeholder="Nom du projet...">
         
         <label class="btn-action">
-            📥 Ouvrir BCF
+            📥 BCF
             <input type="file" id="upload-bcf" accept=".bcf,.bcfzip">
         </label>
     </div>
 
-    <div id="status-bar">👆 Double-cliquez sur le modèle pour annoter</div>
+    <div id="status-bar">👆 Double-cliquez sur la maquette pour annoter</div>
 
     <div id="liste-container"></div>
 
@@ -149,7 +150,7 @@
         const container = document.getElementById('viewer-container');
         const viewer = new IfcViewerAPI({ container, backgroundColor: new Color(0xf4f7f6) });
         viewer.grid.setGrid();
-        viewer.IFC.setWasmPath('../../IFCViewer/'); // Ton chemin fonctionnel
+        viewer.IFC.setWasmPath('../../IFCViewer/');
 
         let listeDefauts = [];
         let donneeTemp = null; 
@@ -333,11 +334,11 @@
             
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="font-weight:bold; color:#333; font-size: 0.95em;">${def.titre}</div>
-                    <button class="btn-action danger" style="padding: 4px 8px; font-size: 0.8em; margin:0;" title="Supprimer">X</button>
+                    <div style="font-weight:bold; color:#333; font-size: 0.9em;">${def.titre}</div>
+                    <button class="btn-action danger" style="padding: 4px 8px; font-size: 0.75em; margin:0;" title="Supprimer">X</button>
                 </div>
-                <div style="font-size:0.85em; color:#666; margin: 5px 0;">${def.desc}</div>
-                <div class="btn-voler" style="font-size:0.9em; color:#007bff; cursor:pointer; font-weight:bold; display:inline-block;">👁️ Voler vers la caméra</div>
+                <div style="font-size:0.85em; color:#666; margin: 4px 0;">${def.desc}</div>
+                <div class="btn-voler" style="font-size:0.85em; color:#007bff; cursor:pointer; font-weight:bold; display:inline-block;">👁️ Voler vers la caméra</div>
                 ${def.image ? `<img class="defaut-img-min" src="${def.image}">` : ''}
             `;
 
@@ -359,7 +360,6 @@
             });
 
             document.getElementById('liste-container').appendChild(div);
-            // Scroll automatique vers le bas pour voir le nouveau défaut
             document.getElementById('liste-container').scrollTop = document.getElementById('liste-container').scrollHeight;
         }
 
