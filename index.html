@@ -90,18 +90,45 @@
         .btn-action.danger  { background: #dc3545; }
         .btn-action.warning { background: #ffc107; color: #333; }
 
-        /* ── 2. Status bar — sous le notch, aligné avec le hamburger ── */
-        #status-bar {
+        /* ── 2. Top-action-bar — sous le notch, aligné avec le hamburger ── */
+        #top-action-bar {
             position: fixed;
             top: calc(env(safe-area-inset-top, 0px) + 10px);
             left: 58px; right: 14px;
-            background: rgba(0,0,0,0.6); color: white; padding: 6px 15px;
-            border-radius: 20px; font-size: 0.8em; z-index: 15;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #status-bar {
+            flex: 1;
+            background: rgba(0,0,0,0.6); color: white; padding: 6px 12px;
+            border-radius: 20px; font-size: 0.8em;
             pointer-events: none; white-space: nowrap; overflow: hidden;
             text-overflow: ellipsis; text-align: center;
             transition: opacity 0.5s ease-out;
             display: block; opacity: 1;
+            min-width: 0;
         }
+        #btn-supprimer-tout-top,
+        #btn-exporter-bcf-top {
+            flex-shrink: 0;
+            border: none; border-radius: 20px;
+            font-size: 0.75em; font-weight: bold;
+            padding: 6px 10px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            height: 30px;
+        }
+        #btn-supprimer-tout-top {
+            background: #dc3545; color: white;
+        }
+        #btn-supprimer-tout-top:active { filter: brightness(0.9); }
+        #btn-exporter-bcf-top {
+            background: #28a745; color: white;
+        }
+        #btn-exporter-bcf-top:active { filter: brightness(0.9); }
 
         #btn-reset-view {
             position: fixed;
@@ -139,8 +166,8 @@
 
         /* Barre permanente — sans padding notch */
         #sheet-bar {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            display: flex;
+            justify-content: center;
             align-items: center;
             background: rgba(255,255,255,0.97);
             box-shadow: 0 -3px 16px rgba(0,0,0,0.15);
@@ -149,28 +176,8 @@
             min-height: 50px;
         }
 
-        #btn-supprimer-tout {
-            justify-self: start; margin-left: 5%;
-            border: none; border-radius: 8px;
-            background: #dc3545; color: white;
-            font-size: 0.78em; font-weight: bold;
-            padding: 7px 11px; cursor: pointer;
-            display: flex; align-items: center; gap: 4px;
-            white-space: nowrap;
-        }
-        #btn-supprimer-tout:active { filter: brightness(0.9); }
-
-        #btn-exporter-bcf {
-            justify-self: end; margin-right: 5%;
-            border: none; border-radius: 8px;
-            background: #28a745; color: white;
-            font-size: 0.78em; font-weight: bold;
-            padding: 7px 11px; cursor: pointer;
-            display: flex; align-items: center; gap: 4px;
-            white-space: nowrap;
-        }
-        #btn-exporter-bcf:active { filter: brightness(0.9); }
-
+        /* anciens boutons sheet-bar — conservés pour compatibilité, masqués */
+        #btn-exporter-bcf { display: none; }
         #btn-toggle-sheet {
             justify-self: center;
             background: none; border: none;
@@ -249,7 +256,7 @@
         /* Repli explicite si safe-area-inset-top non exposé (Safari navigateur) */
         @supports (padding-top: constant(safe-area-inset-top)) {
             #btn-collapse-topbar { top: calc(constant(safe-area-inset-top) + 10px); }
-            #status-bar          { top: calc(constant(safe-area-inset-top) + 10px); }
+            #top-action-bar      { top: calc(constant(safe-area-inset-top) + 10px); }
             #btn-reset-view      { top: calc(constant(safe-area-inset-top) + 60px); }
         }
         #modal-overlay {
@@ -302,17 +309,23 @@
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc, .ifczip"></label>
         <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
+        <span class="drawer-label" style="margin-top:6px">Annotations</span>
+        <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
+        <button class="btn-action danger" id="btn-supprimer-tout-drawer">🗑 Supprimer tout</button>
     </div>
 
-    <div id="status-bar">👆 Double-cliquez sur la maquette pour annoter</div>
+    <!-- Barre top : status + boutons Supprimer tout + Export BCF -->
+    <div id="top-action-bar">
+        <div id="status-bar">👆 Double-cliquez sur la maquette pour annoter</div>
+        <button id="btn-supprimer-tout-top" title="Supprimer toutes les annotations">🗑 Tout</button>
+        <button id="btn-exporter-bcf-top" title="Exporter en BCF">BCF 💾</button>
+    </div>
     <button id="btn-reset-view" title="Vue globale">🏠</button>
 
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
-            <button id="btn-supprimer-tout">🗑 ← Tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
-            <button id="btn-exporter-bcf">BCF → 💾</button>
         </div>
     </div>
 
@@ -808,7 +821,7 @@
             if(!idEditionEnCours) setTimeout(() => { conteneur.scrollTop = conteneur.scrollHeight; }, 50);
         }
 
-        document.getElementById('btn-supprimer-tout').addEventListener('click', () => {
+        document.getElementById('btn-supprimer-tout-top').addEventListener('click', () => {
             if(confirm("Tout supprimer ?")) {
                 listeDefauts.forEach(def => { if (def.mesh3D) viewer.context.getScene().remove(def.mesh3D); });
                 listeDefauts = [];
@@ -816,7 +829,15 @@
             }
         });
 
-        document.getElementById('btn-exporter-bcf').addEventListener('click', async () => {
+        document.getElementById('btn-supprimer-tout-drawer').addEventListener('click', () => {
+            document.getElementById('btn-supprimer-tout-top').click();
+        });
+
+        document.getElementById('btn-exporter-bcf-drawer').addEventListener('click', () => {
+            document.getElementById('btn-exporter-bcf-top').click();
+        });
+
+        document.getElementById('btn-exporter-bcf-top').addEventListener('click', async () => {
             if (listeDefauts.length === 0) return;
             const zip = new JSZip();
             zip.file("bcf.version", `<?xml version="1.0" encoding="UTF-8"?><Version VersionId="2.1"/>`);
