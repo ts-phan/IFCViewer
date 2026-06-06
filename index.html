@@ -105,8 +105,12 @@
             display: flex; gap: 10px; align-items: center; justify-content: space-between;
         }
         .defaut-contenu { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .defaut-en-tete { margin-bottom: 4px; font-weight:bold; color:#333; font-size: 0.9em; word-break: break-word; }
-        .defaut-desc { font-size:0.8em; color:#666; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: pre-wrap; }
+        .defaut-en-tete { margin-bottom: 2px; font-weight:bold; color:#333; font-size: 0.9em; word-break: break-word; display:flex; align-items:center; gap:6px; }
+        .badge-type { font-size: 0.65em; font-weight: bold; padding: 2px 6px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+        .badge-type.Issue { background: #cfe2ff; color: #084298; }
+        .badge-type.Warning { background: #fff3cd; color: #856404; }
+        .defaut-date { font-size: 0.72em; color: #888; margin-bottom: 3px; }
+        .defaut-desc { font-size:0.8em; color:#666; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: pre-wrap; }
         
         .defaut-droite { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         
@@ -119,9 +123,10 @@
             display: flex; align-items: center; justify-content: center; padding: 0;
         }
         .btn-outil:hover { background: #e2e6ea; }
-        .btn-outil.supprimer { background: #ffe3e5; border-color: #ffc107; color: #dc3545; }
+        .btn-outil.supprimer { background: #ffe3e5; border-color: #dc3545; color: #dc3545; }
         
         .defaut-img-min { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; flex-shrink: 0; }
+        .defaut-img-placeholder { width: 72px; height: 72px; border-radius: 6px; border: 1px dashed #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: #ccc; background: #f8f9fa; }
 
         /* Actions globales fixées au fond */
         .bottom-actions { display: flex; justify-content: space-between; gap: 10px; }
@@ -129,6 +134,12 @@
 
         #bottom-sheet.folded #liste-container, #bottom-sheet.folded .bottom-actions { display: none; }
         
+        /* Overlay sombre pour les modals */
+        #modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            z-index: 90; backdrop-filter: blur(2px);
+        }
+
         /* 5. Fenêtres Modales */
         .modal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -178,6 +189,8 @@
             <button id="btn-exporter-bcf" class="btn-action success">💾 Exporter BCF</button>
         </div>
     </div>
+
+    <div id="modal-overlay"></div>
 
     <div id="modal-annotation" class="modal">
         <h3 id="titre-modal-form" style="margin-top:0; font-size: 1.1em; margin-bottom: 10px;">Nouveau Défaut</h3>
@@ -282,11 +295,12 @@
         });
 
         function majTexteTiroir() {
+            const n = listeDefauts.length;
             if (isSheetFolded) {
-                btnToggleSheet.innerHTML = `▲ Annotations masquées (${listeDefauts.length})`;
+                btnToggleSheet.innerHTML = `▲ Annotations masquées (${n})`;
                 btnToggleSheet.style.background = "#fff3cd"; 
             } else {
-                btnToggleSheet.innerHTML = `▼ Masquer les annotations`;
+                btnToggleSheet.innerHTML = `▼ Masquer les annotations (${n})`;
                 btnToggleSheet.style.background = "rgba(255,255,255,0.95)";
             }
         }
@@ -451,17 +465,17 @@
             document.getElementById('preview-img').src = imageBase64;
             document.getElementById('titre-defaut').value = "";
             document.getElementById('desc-defaut').value = `${dateStr}\n- `; 
-            document.getElementById('modal-annotation').style.display = 'block';
+            ouvrirModal(document.getElementById('modal-annotation'));
         });
 
         document.getElementById('btn-annuler-defaut').addEventListener('click', () => { 
-            document.getElementById('modal-annotation').style.display = 'none'; 
+            fermerModals();
             donneeTemp = null; 
             idEditionEnCours = null;
         });
 
         document.getElementById('btn-fermer-voir').addEventListener('click', () => { 
-            document.getElementById('modal-voir').style.display = 'none'; 
+            fermerModals();
         });
 
         document.getElementById('btn-valider-defaut').addEventListener('click', () => {
@@ -496,11 +510,20 @@
             }
 
             rafraichirListeDefauts();
-            document.getElementById('modal-annotation').style.display = 'none';
+            fermerModals();
             donneeTemp = null;
             idEditionEnCours = null;
             document.getElementById('upload-photo').value = ""; 
         });
+
+        // --- GESTION OVERLAY ---
+        const overlay = document.getElementById('modal-overlay');
+        function ouvrirModal(el) { el.style.display = 'block'; overlay.style.display = 'block'; }
+        function fermerModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            overlay.style.display = 'none';
+        }
+        overlay.addEventListener('click', () => { fermerModals(); donneeTemp = null; idEditionEnCours = null; });
 
         // --- AFFICHAGE DE LA LISTE ---
         function rafraichirListeDefauts() {
@@ -511,10 +534,27 @@
                 const div = document.createElement('div');
                 div.className = "defaut-item";
                 
+                // Extraire la date du début de la description (format "samedi 6 juin...")
+                const descLines = (def.desc || "").split('\n');
+                const premiereLigne = descLines[0] || "";
+                const isDateLine = /^\w+\s+\d+\s+\w+/.test(premiereLigne) || premiereLigne.includes('à ');
+                const dateAffichee = isDateLine ? premiereLigne : "";
+                const descSansDate = isDateLine ? descLines.slice(1).join('\n').trim() : def.desc || "";
+
+                const badgeClass = def.type === 'Warning' ? 'Warning' : 'Issue';
+                const badgeLabel = def.type === 'Warning' ? '⚠️ Alerte' : '🔵 Issue';
+                const imgHtml = def.image 
+                    ? `<img class="defaut-img-min" src="${def.image}">`
+                    : `<div class="defaut-img-placeholder">📷</div>`;
+                
                 div.innerHTML = `
                     <div class="defaut-contenu">
-                        <div class="defaut-en-tete">${def.titre}</div>
-                        <div class="defaut-desc">${def.desc}</div>
+                        <div class="defaut-en-tete">
+                            <span>${def.titre}</span>
+                            <span class="badge-type ${badgeClass}">${badgeLabel}</span>
+                        </div>
+                        ${dateAffichee ? `<div class="defaut-date">${dateAffichee}</div>` : ''}
+                        <div class="defaut-desc">${descSansDate || '-'}</div>
                     </div>
                     
                     <div class="defaut-droite">
@@ -524,7 +564,7 @@
                             <button class="btn-outil btn-voir" title="Voir détails">👁️</button>
                             <button class="btn-outil supprimer btn-supprimer-croix" title="Supprimer">🗑️</button>
                         </div>
-                        ${def.image ? `<img class="defaut-img-min" src="${def.image}">` : ''}
+                        ${imgHtml}
                     </div>
                 `;
 
@@ -543,7 +583,7 @@
                     document.getElementById('desc-defaut').value = def.desc || "";
                     document.getElementById('type-defaut').value = def.type || "Issue";
                     document.getElementById('preview-img').src = def.image || "";
-                    document.getElementById('modal-annotation').style.display = 'block';
+                    ouvrirModal(document.getElementById('modal-annotation'));
                 });
 
                 div.querySelector('.btn-voir').addEventListener('click', () => {
@@ -556,7 +596,7 @@
                     } else {
                         imgVoir.style.display = 'none';
                     }
-                    document.getElementById('modal-voir').style.display = 'block';
+                    ouvrirModal(document.getElementById('modal-voir'));
                 });
 
                 div.querySelector('.btn-supprimer-croix').addEventListener('click', () => {
@@ -571,7 +611,7 @@
             });
             
             gererAffichageBoutons();
-            if(!idEditionEnCours) conteneur.scrollTop = conteneur.scrollHeight;
+            if(!idEditionEnCours) setTimeout(() => { conteneur.scrollTop = conteneur.scrollHeight; }, 50);
         }
 
         document.getElementById('btn-supprimer-tout').addEventListener('click', () => {
