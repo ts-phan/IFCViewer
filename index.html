@@ -70,90 +70,109 @@
             font-size: 1.3em; cursor: pointer; align-items: center; justify-content: center;
         }
 
-        /* 3. Tiroir Coulissant compact */
+        /* 3. Bottom-sheet : ancrage permanent en bas, dépliage vers le haut */
         #bottom-sheet {
             position: fixed;
             bottom: 0; left: 0; right: 0; z-index: 20;
-            display: none;
+            display: flex;          /* toujours visible, même vide */
             flex-direction: column;
-            /* Pas de pointer-events:none — le sheet doit être cliquable intégralement */
+            align-items: stretch;
         }
 
-        /* Handle + barre d'actions dans un seul bandeau */
-        .sheet-header {
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(255,255,255,0.97);
-            padding: 6px 10px 6px 14px;
-            border-radius: 14px 14px 0 0;
-            box-shadow: 0 -3px 16px rgba(0,0,0,0.13);
-            backdrop-filter: blur(8px);
-            gap: 8px;
-        }
-        /* Handle iOS centré en haut du bandeau */
-        .sheet-header::before {
-            content: ''; display: none; /* géré par pseudo sur wrapper */
-        }
-        #sheet-handle {
-            width: 36px; height: 4px; background: #ccc; border-radius: 2px;
-            position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
-        }
-        #sheet-header-wrap {
-            position: relative;
-        }
-
-        #btn-toggle-sheet {
-            background: none; border: none; font-weight: 700; font-size: 0.82em;
-            cursor: pointer; color: #333; padding: 4px 0; white-space: nowrap;
-            flex: 1;
-        }
-
-        /* Boutons d'actions globales compacts dans le header */
-        .sheet-header-actions { display: flex; gap: 6px; flex-shrink: 0; }
-        .btn-sheet-action {
-            border: none; border-radius: 8px; font-size: 0.78em; font-weight: bold;
-            padding: 5px 10px; cursor: pointer; color: white; white-space: nowrap;
-            display: flex; align-items: center; gap: 4px; transition: 0.15s;
-        }
-        .btn-sheet-action:hover { filter: brightness(1.1); }
-        .btn-sheet-action.danger  { background: #dc3545; }
-        .btn-sheet-action.success { background: #28a745; }
-
-        /* Liste compacte */
+        /* Liste scrollable qui apparaît AU-DESSUS de la barre permanente */
         #liste-container {
-            max-height: 28vh;
+            max-height: 42vh;
             overflow-y: auto;
             display: flex; flex-direction: column; gap: 0;
             background: rgba(248,249,250,0.98);
-            padding: 4px 8px calc(env(safe-area-inset-bottom, 0px) + 6px) 8px;
             backdrop-filter: blur(8px);
+            border-top: 1px solid #e0e0e0;
+            transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1),
+                        opacity 0.25s ease;
+        }
+        /* Replié : on écrase la hauteur */
+        #bottom-sheet.folded #liste-container {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-top: none;
         }
 
-        @media (min-width: 769px) { #bottom-sheet { left: auto; width: 420px; right: 0; } }
+        /* ── Barre permanente en bas ── */
+        #sheet-bar {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 -3px 16px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)) 0;
+            min-height: 50px;
+        }
 
-        /* Masquer la liste quand replié */
-        #bottom-sheet.folded #liste-container { display: none; }
+        /* Bouton gauche — 5% depuis le bord gauche */
+        #btn-supprimer-tout {
+            justify-self: start;
+            margin-left: 5%;
+            border: none; border-radius: 8px;
+            background: #dc3545; color: white;
+            font-size: 0.78em; font-weight: bold;
+            padding: 7px 11px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+            white-space: nowrap; transition: 0.15s;
+        }
+        #btn-supprimer-tout:active { filter: brightness(0.9); }
 
-        /* 4. Cartes compactes : une ligne unique */
+        /* Bouton droit — 5% depuis le bord droit */
+        #btn-exporter-bcf {
+            justify-self: end;
+            margin-right: 5%;
+            border: none; border-radius: 8px;
+            background: #28a745; color: white;
+            font-size: 0.78em; font-weight: bold;
+            padding: 7px 11px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+            white-space: nowrap; transition: 0.15s;
+        }
+        #btn-exporter-bcf:active { filter: brightness(0.9); }
+
+        /* Texte central toggle */
+        #btn-toggle-sheet {
+            justify-self: center;
+            background: none; border: none;
+            font-weight: 700; font-size: 0.82em;
+            color: #333; cursor: pointer;
+            padding: 6px 10px; text-align: center;
+            white-space: nowrap;
+        }
+        #btn-toggle-sheet:active { opacity: 0.7; }
+
+        @media (min-width: 769px) {
+            #bottom-sheet { left: auto; width: 460px; right: 0; }
+        }
+
+        /* 4. Cartes — 3 lignes : titre+badge / date / desc */
         .defaut-item {
             background: white;
             border-left: 3px solid #dc3545;
             display: flex; align-items: center; gap: 8px;
-            padding: 7px 8px;
-            /* Séparateur léger entre les cartes */
+            padding: 8px 10px;
             border-bottom: 1px solid #f0f0f0;
         }
-        .defaut-item:last-child { border-bottom: none; border-radius: 0 0 0 0; }
-        .defaut-item:first-child { border-radius: 0; }
+        .defaut-item:last-child { border-bottom: none; }
 
-        /* Contenu texte sur une ligne */
         .defaut-contenu {
             flex: 1; min-width: 0;
             display: flex; flex-direction: column; gap: 1px; overflow: hidden;
         }
+        /* Ligne 1 : titre + badge */
         .defaut-en-tete {
             font-weight: 700; color: #222; font-size: 0.85em;
             display: flex; align-items: center; gap: 5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .defaut-titre-txt {
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .badge-type {
             font-size: 0.6em; font-weight: bold; padding: 1px 5px;
@@ -161,14 +180,18 @@
         }
         .badge-type.Issue   { background: #cfe2ff; color: #084298; }
         .badge-type.Warning { background: #fff3cd; color: #856404; }
-
-        /* Date + desc sur une seule ligne tronquée */
-        .defaut-meta {
+        /* Ligne 2 : date */
+        .defaut-date {
             font-size: 0.72em; color: #888;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
+        /* Ligne 3 : description */
+        .defaut-desc {
+            font-size: 0.78em; color: #555;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
-        /* Outils en ligne horizontale (4 boutons) */
+        /* Outils à droite */
         .defaut-droite { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
         .btn-outil {
             background: #f1f3f5; border: 1px solid #e0e0e0; border-radius: 6px;
@@ -227,15 +250,12 @@
     <button id="btn-reset-view" title="Vue globale">🏠</button>
 
     <div id="bottom-sheet">
-        <div class="sheet-header" id="sheet-header-wrap">
-            <div id="sheet-handle"></div>
-            <button id="btn-toggle-sheet">▼ Annotations (0)</button>
-            <div class="sheet-header-actions">
-                <button id="btn-supprimer-tout" class="btn-sheet-action danger">🗑️ Tout</button>
-                <button id="btn-exporter-bcf" class="btn-sheet-action success">💾 BCF</button>
-            </div>
-        </div>
         <div id="liste-container"></div>
+        <div id="sheet-bar">
+            <button id="btn-supprimer-tout">🗑️ Tout supprimer</button>
+            <button id="btn-toggle-sheet">▼ Annotations (0)</button>
+            <button id="btn-exporter-bcf">💾 Exporter BCF</button>
+        </div>
     </div>
 
     <div id="modal-overlay"></div>
@@ -337,9 +357,12 @@
 
         const bottomSheet = document.getElementById('bottom-sheet');
         const btnToggleSheet = document.getElementById('btn-toggle-sheet');
-        let isSheetFolded = false;
+        let isSheetFolded = false;  // déplié par défaut
         
         let timeoutStatut;
+
+        // État initial de la barre (avant restauration)
+        majTexteTiroir();
 
         // Restaurer au démarrage
         chargerDepuisLocalStorage();
@@ -393,17 +416,14 @@
         function majTexteTiroir() {
             const n = listeDefauts.length;
             if (isSheetFolded) {
-                btnToggleSheet.innerHTML = `▲ Masqué (${n})`;
-                btnToggleSheet.style.fontStyle = "italic";
+                btnToggleSheet.innerHTML = `▲ Annotations (${n})`;
             } else {
                 btnToggleSheet.innerHTML = `▼ Annotations (${n})`;
-                btnToggleSheet.style.fontStyle = "normal";
             }
         }
 
         function gererAffichageBoutons() {
-            const hasDefauts = listeDefauts.length > 0;
-            bottomSheet.style.display = hasDefauts ? 'flex' : 'none';
+            // La barre est toujours visible — on ne masque jamais #bottom-sheet
             majTexteTiroir();
         }
 
@@ -637,24 +657,21 @@
                 const descLines = (def.desc || "").split('\n');
                 const premiereLigne = descLines[0] || "";
                 const isDateLine = /^\w+\s+\d+\s+\w+/.test(premiereLigne) || premiereLigne.includes('à ');
-                const dateAffichee = isDateLine ? premiereLigne : "";
+                const dateAffichee = isDateLine ? premiereLigne : "—";
                 const descSansDate = isDateLine ? descLines.slice(1).join('\n').trim() : def.desc || "";
+                const descAffichee = descSansDate && descSansDate !== '-' ? descSansDate : '—';
 
                 const badgeClass = def.type === 'Warning' ? 'Warning' : 'Issue';
-                const badgeLabel = def.type === 'Warning' ? '⚠️' : '🔵';
-                const badgeText = def.type === 'Warning' ? 'Alerte' : 'Issue';
-
-                // Meta compacte : date · desc sur une ligne
-                const metaParts = [dateAffichee, descSansDate && descSansDate !== '-' ? descSansDate : ''].filter(Boolean);
-                const metaStr = metaParts.join(' · ') || '—';
+                const badgeLabel = def.type === 'Warning' ? '⚠️ Alerte' : '🔵 Issue';
 
                 div.innerHTML = `
                     <div class="defaut-contenu">
                         <div class="defaut-en-tete">
-                            <span style="overflow:hidden;text-overflow:ellipsis">${def.titre}</span>
-                            <span class="badge-type ${badgeClass}">${badgeLabel} ${badgeText}</span>
+                            <span class="defaut-titre-txt">${def.titre}</span>
+                            <span class="badge-type ${badgeClass}">${badgeLabel}</span>
                         </div>
-                        <div class="defaut-meta">${metaStr}</div>
+                        <div class="defaut-date">${dateAffichee}</div>
+                        <div class="defaut-desc">${descAffichee}</div>
                     </div>
                     <div class="defaut-droite">
                         <button class="btn-outil btn-voler" title="Localiser">📍</button>
