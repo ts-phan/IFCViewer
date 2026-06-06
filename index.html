@@ -92,13 +92,14 @@
         /* ── 2. Status bar + reset ── */
         #status-bar {
             position: fixed;
-            top: 14px;
-            left: 58px; right: 14px;   /* laisse place au hamburger */
+            top: calc(env(safe-area-inset-top, 0px) + 14px);
+            left: 58px; right: 14px;
             background: rgba(0,0,0,0.6); color: white; padding: 6px 15px;
             border-radius: 20px; font-size: 0.8em; z-index: 15;
             pointer-events: none; white-space: nowrap; overflow: hidden;
             text-overflow: ellipsis; text-align: center;
             transition: opacity 0.5s ease-out;
+            display: block; opacity: 1;
         }
 
         #btn-reset-view {
@@ -302,9 +303,9 @@
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
-            <button id="btn-supprimer-tout">🗑️ Tout supprimer</button>
+            <button id="btn-supprimer-tout">← Tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
-            <button id="btn-exporter-bcf">💾 Exporter BCF</button>
+            <button id="btn-exporter-bcf">BCF →</button>
         </div>
     </div>
 
