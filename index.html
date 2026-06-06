@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="Audit BIM">
     <link rel="apple-touch-icon" href="./icon-192.png">
  
- 
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Visionneuse BIM & Audit BCF</title>
@@ -20,10 +20,10 @@
         body { margin: 0; overflow: hidden; font-family: '-apple-system', 'Segoe UI', sans-serif; background-color: #f0f0f0; }
         #viewer-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* 1. Barre Supérieure : Collée sous la zone sécurisée iOS */
+        /* 1. Barre Supérieure */
         #top-bar {
             position: absolute; 
-            top: env(safe-area-inset-top, 10px); /* Ajustement dynamique iOS */
+            top: env(safe-area-inset-top, 10px); 
             left: 10px; right: 10px; z-index: 20;
             display: flex; gap: 8px; justify-content: space-between; align-items: center; 
             flex-wrap: nowrap; overflow-x: auto; 
@@ -33,7 +33,7 @@
         }
 
         #top-bar input[type="text"] {
-            flex: 1; min-width: 120px;
+            flex: 1; min-width: 100px;
             padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em;
         }
         
@@ -43,10 +43,12 @@
             background: #007bff; color: white; border: none; padding: 8px 12px; 
             border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em; 
             text-align: center; white-space: nowrap; transition: 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
         }
         .btn-action:hover { filter: brightness(1.1); }
         .btn-action.success { background: #28a745; }
         .btn-action.danger { background: #dc3545; }
+        .btn-action.warning { background: #ffc107; color: #333; }
         
         /* 2. Indicateur de statut */
         #status-bar {
@@ -57,43 +59,42 @@
             font-size: 0.8em; z-index: 15; pointer-events: none; white-space: nowrap;
         }
 
-        /* Bouton de réinitialisation de la caméra */
+        /* 3. Bouton Home (Descendu) */
         #btn-reset-view {
             position: absolute; 
-            top: calc(env(safe-area-inset-top, 10px) + 55px); 
+            top: calc(env(safe-area-inset-top, 10px) + 100px); /* Ajusté plus bas */
             right: 15px; z-index: 15; display: none;
             background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50%;
-            width: 40px; height: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            font-size: 1.2em; cursor: pointer; align-items: center; justify-content: center;
+            width: 44px; height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 1.3em; cursor: pointer; align-items: center; justify-content: center;
         }
 
-        /* 3. Tiroir Coulissant du bas */
+        /* 4. Tiroir Coulissant du bas (Collé au fond) */
         #bottom-sheet {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
-            padding: 10px 10px calc(env(safe-area-inset-bottom, 10px) + 10px) 10px;
-            display: none; /* Flex quand il y a des données */
-            flex-direction: column; gap: 8px;
-            pointer-events: none; /* Laisse passer les clics quand vide */
+            padding: 5px 10px calc(env(safe-area-inset-bottom, 5px) + 5px) 10px; /* Marges réduites */
+            display: none; 
+            flex-direction: column; gap: 6px;
+            pointer-events: none; 
         }
-        #bottom-sheet > * { pointer-events: auto; } /* Rend les enfants cliquables */
+        #bottom-sheet > * { pointer-events: auto; } 
 
-        .sheet-header { display: flex; justify-content: center; }
+        .sheet-header { display: flex; justify-content: center; margin-bottom: 2px; }
         
         #btn-toggle-sheet {
-            background: rgba(255,255,255,0.95); border: none; padding: 6px 16px; border-radius: 20px;
+            background: rgba(255,255,255,0.95); border: none; padding: 4px 16px; border-radius: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 0.85em; 
             cursor: pointer; backdrop-filter: blur(5px); color: #333;
         }
 
         #liste-container {
-            max-height: 270px; /* Calibré pour afficher 3 défauts environ */
+            max-height: 270px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
             padding-right: 2px; transition: 0.3s;
         }
         
         @media (min-width: 769px) { #bottom-sheet { left: auto; width: 370px; } }
         
-        /* Style des cartes conservé */
         .defaut-item { 
             background: rgba(255,255,255,0.95); border-radius: 8px; padding: 8px 10px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-left: 4px solid #dc3545;
@@ -104,25 +105,26 @@
         .defaut-desc { font-size:0.8em; color:#666; margin: 2px 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .defaut-img-min { width: 65px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; flex-shrink: 0; }
 
-        .bottom-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 5px; }
+        .bottom-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 2px; }
         .bottom-actions button { flex: 1; }
 
-        /* État Plié du tiroir */
-        #bottom-sheet.folded #liste-container,
-        #bottom-sheet.folded .bottom-actions {
-            display: none;
-        }
+        #bottom-sheet.folded #liste-container, #bottom-sheet.folded .bottom-actions { display: none; }
         
         /* Modal d'annotation */
         #modal-annotation {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-            z-index: 100; width: 90vw; max-width: 320px; box-sizing: border-box;
+            z-index: 100; width: 90vw; max-width: 340px; box-sizing: border-box;
         }
-        #modal-annotation input, #modal-annotation textarea, #modal-annotation select { width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 12px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;}
-        #preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee;}
+        #modal-annotation input[type="text"], #modal-annotation textarea, #modal-annotation select { 
+            width: 100%; box-sizing: border-box; margin-top: 5px; margin-bottom: 12px; 
+            padding: 8px; border-radius: 6px; border: 1px solid #ccc;
+        }
+        #preview-img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee; background: #fafafa;}
         .modal-actions { display: flex; gap: 10px; }
         .modal-actions button { flex: 1; padding: 10px; border-radius: 6px; border: none; color: white; font-weight: bold; cursor: pointer;}
+        
+        .header-media { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
     </style>
 
     <script type="importmap">
@@ -139,6 +141,7 @@
 <body>
 
     <div id="top-bar">
+        <button class="btn-action warning" id="btn-nouveau" title="Nouveau Projet (Vider l'audit)" style="padding: 8px;">✨</button>
         <label class="btn-action">📂 IFC<input type="file" id="upload-ifc" accept=".ifc, .ifczip"></label>
         <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <label class="btn-action">📥 BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
@@ -148,9 +151,7 @@
     <button id="btn-reset-view" title="Vue globale">🏠</button>
 
     <div id="bottom-sheet">
-        <div class="sheet-header">
-            <button id="btn-toggle-sheet">▼ Masquer (0)</button>
-        </div>
+        <div class="sheet-header"><button id="btn-toggle-sheet">▼ Masquer (0)</button></div>
         <div id="liste-container"></div>
         <div class="bottom-actions">
             <button id="btn-supprimer-tout" class="btn-action danger">🗑️ Tout supprimer</button>
@@ -159,7 +160,15 @@
     </div>
 
     <div id="modal-annotation">
-        <h3 style="margin-top:0; font-size: 1.1em;">Nouveau Défaut</h3>
+        <h3 style="margin-top:0; font-size: 1.1em; margin-bottom: 10px;">Nouveau Défaut</h3>
+        
+        <div class="header-media">
+            <span style="font-size:0.85em; font-weight:bold;">Image (3D ou Photo)</span>
+            <label class="btn-action" style="padding: 4px 8px; font-size: 0.8em; margin:0;">
+                📷 Prendre photo
+                <input type="file" id="upload-photo" accept="image/*" capture="environment">
+            </label>
+        </div>
         <img id="preview-img" src="" alt="Capture">
         
         <label style="font-size:0.85em; font-weight:bold;">Titre & Type</label>
@@ -169,7 +178,7 @@
         </div>
         
         <label style="font-size:0.85em; font-weight:bold;">Description</label>
-        <textarea id="desc-defaut" rows="2"></textarea>
+        <textarea id="desc-defaut" rows="3"></textarea>
         
         <div class="modal-actions">
             <button id="btn-annuler-defaut" style="background:#6c757d;">Annuler</button>
@@ -190,7 +199,7 @@
 
         let listeDefauts = [];
         let donneeTemp = null; 
-        let homeView = null; // Position initiale de la caméra
+        let homeView = null; 
 
         const materiauMarqueur = new MeshBasicMaterial({ color: 0xdc3545 });
         const geometrieMarqueur = new SphereGeometry(0.25, 16, 16);
@@ -198,6 +207,31 @@
         const bottomSheet = document.getElementById('bottom-sheet');
         const btnToggleSheet = document.getElementById('btn-toggle-sheet');
         let isSheetFolded = false;
+
+        // --- Logique Nouveau Projet ---
+        document.getElementById('btn-nouveau').addEventListener('click', () => {
+            if(confirm("Créer un nouveau projet ? Cela effacera l'audit en cours (la maquette restera affichée).")) {
+                listeDefauts.forEach(def => { if (def.mesh3D) viewer.context.getScene().remove(def.mesh3D); });
+                listeDefauts = [];
+                document.getElementById('liste-container').innerHTML = '';
+                document.getElementById('nom-projet').value = '';
+                gererAffichageBoutons();
+                document.getElementById('status-bar').textContent = "✨ Nouveau projet prêt.";
+            }
+        });
+
+        // --- Remplacement par une vraie photo ---
+        document.getElementById('upload-photo').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64 = e.target.result;
+                document.getElementById('preview-img').src = base64;
+                if(donneeTemp) donneeTemp.image = base64;
+            };
+            reader.readAsDataURL(file);
+        });
 
         // --- Logique Tiroir Plier/Déplier ---
         btnToggleSheet.addEventListener('click', () => {
@@ -213,7 +247,7 @@
         function majTexteTiroir() {
             if (isSheetFolded) {
                 btnToggleSheet.innerHTML = `▲ Annotations masquées (${listeDefauts.length})`;
-                btnToggleSheet.style.background = "#fff3cd"; // Couleur discrète d'avertissement
+                btnToggleSheet.style.background = "#fff3cd"; 
             } else {
                 btnToggleSheet.innerHTML = `▼ Masquer les annotations`;
                 btnToggleSheet.style.background = "rgba(255,255,255,0.95)";
@@ -232,12 +266,12 @@
                 viewer.context.ifcCamera.cameraControls.setLookAt(
                     homeView.position.x, homeView.position.y, homeView.position.z,
                     homeView.target.x, homeView.target.y, homeView.target.z,
-                    true // Transition animée douce
+                    true 
                 );
             }
         });
 
-        // --- 1. CHARGEMENT IFC ---
+        // --- CHARGEMENT IFC ---
         document.getElementById('upload-ifc').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -253,7 +287,6 @@
                 const url = URL.createObjectURL(fichierFinal);
                 await viewer.IFC.loadIfcUrl(url, true);
                 
-                // Sauvegarde la position de départ pour le bouton "Home"
                 const camControls = viewer.context.ifcCamera.cameraControls;
                 const p = new Vector3();
                 const t = new Vector3();
@@ -266,7 +299,7 @@
             } catch (err) { alert("Erreur IFC : " + err.message); } 
         });
 
-        // --- 2. IMPORT BCF ---
+        // --- IMPORT BCF ---
         document.getElementById('upload-bcf').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -335,7 +368,6 @@
                         }
                     });
                     
-                    // Ouvre automatiquement le panneau s'il était plié
                     isSheetFolded = false;
                     bottomSheet.classList.remove('folded');
                     gererAffichageBoutons();
@@ -345,6 +377,7 @@
             } catch (err) { alert("Erreur BCF"); console.error(err); }
         });
 
+        // --- ANNOTATION PAR DÉFAUT (Double Clic) ---
         window.addEventListener('dblclick', async (event) => {
             if(event.target.closest('#top-bar') || event.target.closest('#modal-annotation') || event.target.closest('#bottom-sheet') || event.target.closest('.btn-action') || event.target.closest('#btn-reset-view')) return;
             const intersection = viewer.context.castRayIfc(event);
@@ -372,9 +405,13 @@
                 image: imageBase64
             };
 
+            // Formatage de la date et heure actuelles
+            const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const dateStr = new Date().toLocaleDateString('fr-FR', optionsDate);
+
             document.getElementById('preview-img').src = imageBase64;
             document.getElementById('titre-defaut').value = "";
-            document.getElementById('desc-defaut').value = "";
+            document.getElementById('desc-defaut').value = `${dateStr}\n- `; // Pré-remplissage
             document.getElementById('modal-annotation').style.display = 'block';
         });
 
@@ -396,13 +433,13 @@
             listeDefauts.push(donneeTemp);
             ajouterAuPanneau(donneeTemp);
             
-            // Ouvre le tiroir pour montrer le nouveau défaut s'il était masqué
             isSheetFolded = false;
             bottomSheet.classList.remove('folded');
             gererAffichageBoutons();
             
             document.getElementById('modal-annotation').style.display = 'none';
             donneeTemp = null;
+            document.getElementById('upload-photo').value = ""; // Réinitialise l'input photo
         });
 
         function ajouterAuPanneau(def) {
@@ -415,7 +452,7 @@
                         <div style="font-weight:bold; color:#333; font-size: 0.9em; word-break: break-word;">${def.titre}</div>
                         <button class="btn-action danger btn-supprimer-croix" style="padding: 2px 8px; font-size: 0.75em; margin:0; border-radius: 4px;" title="Supprimer">X</button>
                     </div>
-                    <div class="defaut-desc">${def.desc}</div>
+                    <div class="defaut-desc" style="white-space: pre-wrap;">${def.desc}</div>
                     <div class="btn-voler" style="font-size:0.85em; color:#007bff; cursor:pointer; font-weight:bold; margin-top:auto;">👁️ Voler vers la caméra</div>
                 </div>
                 ${def.image ? `<img class="defaut-img-min" src="${def.image}">` : ''}
