@@ -29,7 +29,7 @@
             z-index: 40;
             display: flex; flex-direction: column; gap: 10px;
             background: rgba(255,255,255,0.97);
-            padding: 56px 14px 20px 14px;  /* 56px pour laisser place au hamburger */
+            padding: calc(56px + 10vh) 14px 20px 14px;  /* 56px hamburger + 10vh décalage */
             box-shadow: 3px 0 20px rgba(0,0,0,0.18);
             backdrop-filter: blur(10px);
             transform: translateX(0);
@@ -321,7 +321,6 @@
         <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
-        <button class="btn-action danger" id="btn-supprimer-tout-drawer">🗑 Supprimer tout</button>
     </div>
 
     <!-- Barre top : status uniquement -->
@@ -551,6 +550,9 @@
                 camControls.getTarget(t);
                 homeView = { position: p, target: t };
                 document.getElementById('btn-reset-view').style.display = 'flex';
+
+                // Fermer le drawer latéral
+                document.body.classList.add('menu-closed');
 
                 // Recréer les marqueurs 3D des défauts déjà en mémoire
                 recreerMarqueurs();
@@ -836,10 +838,6 @@
                 listeDefauts = [];
                 rafraichirListeDefauts();
             }
-        });
-
-        document.getElementById('btn-supprimer-tout-drawer').addEventListener('click', () => {
-            document.getElementById('btn-supprimer-tout-top').click();
         });
 
         async function exporterBCF() {
