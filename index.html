@@ -930,11 +930,13 @@
                 folder.file("markup.bcf", `<?xml version="1.0" encoding="UTF-8"?><Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${(def.desc || "") + codeLaser}</Description></Topic></Markup>`);
 
                 if (def.camX !== undefined) {
-                    // Coordonnées Three.js brutes (Y=haut) — BIMcollab les accepte dans ce repère
-                    // upVector : Three.js a toujours Y=haut, donc (0,1,0) est la valeur correcte
-                    // On NE convertit PAS Y↔Z car la maquette et BIMcollab partagent le même repère
-                    const upX = 0, upY = 1, upZ = 0;
-                    folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo><PerspectiveCamera><CameraViewPoint><X>${def.camX}</X><Y>${def.camY}</Y><Z>${def.camZ}</Z></CameraViewPoint><CameraDirection><X>${def.dirX}</X><Y>${def.dirY}</Y><Z>${def.dirZ}</Z></CameraDirection><CameraUpVector><X>${upX}</X><Y>${upY}</Y><Z>${upZ}</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
+                    // Conversion Three.js (Y=haut) → IFC/BCF (Z=haut)
+                    // Position : (X, Y, Z) → (X, -Z, Y)
+                    // Direction : (X, Y, Z) → (X, -Z, Y)
+                    // UpVector : (0,1,0) → (0,0,1)
+                    const posX =  def.camX, posY = -def.camZ, posZ =  def.camY;
+                    const dirX =  def.dirX, dirY = -def.dirZ, dirZ =  def.dirY;
+                    folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo><PerspectiveCamera><CameraViewPoint><X>${posX}</X><Y>${posY}</Y><Z>${posZ}</Z></CameraViewPoint><CameraDirection><X>${dirX}</X><Y>${dirY}</Y><Z>${dirZ}</Z></CameraDirection><CameraUpVector><X>0</X><Y>0</Y><Z>1</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
                 }
 
                 if (def.image) {
