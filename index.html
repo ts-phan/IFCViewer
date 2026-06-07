@@ -930,11 +930,10 @@
                 folder.file("markup.bcf", `<?xml version="1.0" encoding="UTF-8"?><Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${(def.desc || "") + codeLaser}</Description></Topic></Markup>`);
 
                 if (def.camX !== undefined) {
-                    // Coordonnées Three.js brutes — BIMcollab les accepte directement
-                    // upVector : fallback (0,1,0) si non capturé ou undefined
-                    const upX = (def.upX !== undefined && !isNaN(def.upX)) ? def.upX : 0;
-                    const upY = (def.upY !== undefined && !isNaN(def.upY)) ? def.upY : 1;
-                    const upZ = (def.upZ !== undefined && !isNaN(def.upZ)) ? def.upZ : 0;
+                    // Coordonnées Three.js brutes (Y=haut) — BIMcollab les accepte dans ce repère
+                    // upVector : Three.js a toujours Y=haut, donc (0,1,0) est la valeur correcte
+                    // On NE convertit PAS Y↔Z car la maquette et BIMcollab partagent le même repère
+                    const upX = 0, upY = 1, upZ = 0;
                     folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo><PerspectiveCamera><CameraViewPoint><X>${def.camX}</X><Y>${def.camY}</Y><Z>${def.camZ}</Z></CameraViewPoint><CameraDirection><X>${def.dirX}</X><Y>${def.dirY}</Y><Z>${def.dirZ}</Z></CameraDirection><CameraUpVector><X>${upX}</X><Y>${upY}</Y><Z>${upZ}</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
                 }
 
