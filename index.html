@@ -66,8 +66,8 @@
         /* ── Bouton hamburger fixe — sous le notch ── */
         #btn-collapse-topbar {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
-            left: 10px; z-index: 15;
+            top: calc(env(safe-area-inset-top, 0px) + 58px);
+            left: 10px; z-index: 50;
             background: rgba(255,255,255,0.97);
             border: none; border-radius: 8px;
             width: 38px; height: 38px;
@@ -113,7 +113,7 @@
 
         #btn-reset-view {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            top: calc(env(safe-area-inset-top, 0px) + 58px);
             right: 15px; z-index: 15; display: none;
             background: rgba(255,255,255,0.95); border: none; border-radius: 50%;
             width: 38px; height: 38px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -298,8 +298,8 @@
     <div id="top-bar">
         <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
-        <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc, .ifczip"></label>
-        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
+        <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc,.ifczip,application/octet-stream" onchange="if(this.files[0]&&!/\.(ifc|ifczip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .ifc ou .ifczip');this.value=''}"></label>
+        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf ou .bcfzip');this.value=''}"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
@@ -307,7 +307,7 @@
 
     <!-- Barre top : status uniquement -->
     <div id="top-action-bar">
-        <div id="status-bar">👆 Double-cliquez sur la maquette pour annoter</div>
+        <div id="status-bar">👈 Cliquez ici pour choisir une maquette</div>
     </div>
     <button id="btn-reset-view" title="Vue globale">🏠</button>
 
