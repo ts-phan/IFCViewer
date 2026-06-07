@@ -114,7 +114,7 @@
         #btn-reset-view {
             position: fixed;
             top: calc(env(safe-area-inset-top, 0px) + 10px);
-            right: 15px; z-index: 10; display: none;
+            right: 10px; z-index: 10; display: none;
             background: rgba(255,255,255,0.95); border: none; border-radius: 50%;
             width: 38px; height: 38px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             font-size: 1.1em; cursor: pointer; align-items: center; justify-content: center;
@@ -299,7 +299,7 @@
         <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc,.ifczip,application/octet-stream" onchange="if(this.files[0]&&!/\.(ifc|ifczip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .ifc ou .ifczip');this.value=''}"></label>
-        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip,.bcfzip.zip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip|bcfzip.zip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf, .bcfzip ou .bcfzip.zip');this.value=''}"></label>
+        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip,.zip" onchange="(function(i){const f=i.files[0];if(!f)return;if(!/\.(bcf|bcfzip|bcfzip\.zip)$/i.test(f.name)){alert('Format non supporté. Choisissez un fichier .bcf, .bcfzip ou .bcfzip.zip');i.value=''};})(this)"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
@@ -927,16 +927,21 @@
                 // [LASER] garde les coords Three.js natives (Y=haut) pour la réimportation PWA
                 const codeLaser = def.x !== undefined ? `\n\n[LASER:${def.x.toFixed(4)};${def.y.toFixed(4)};${def.z.toFixed(4)}]` : "";
 
-                folder.file("markup.bcf", `<?xml version="1.0" encoding="UTF-8"?><Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${(def.desc || "") + codeLaser}</Description></Topic></Markup>`);
+                const viewpointGuid = generateUUID();
+
+                // markup.bcf : lien explicite vers le viewpoint (requis par BIMcollab pour changer de vue)
+                const viewpointRef = def.camX !== undefined
+                    ? `<Viewpoints Guid="${viewpointGuid}"><Viewpoint>viewpoint.bcfv</Viewpoint><Snapshot>snapshot.png</Snapshot></Viewpoints>`
+                    : '';
+                folder.file("markup.bcf", `<?xml version="1.0" encoding="UTF-8"?><Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${(def.desc || "") + codeLaser}</Description></Topic>${viewpointRef}</Markup>`);
 
                 if (def.camX !== undefined) {
                     // Conversion Three.js (Y=haut) → BCF/IFC (Z=haut) pour BIMcollab
-                    // Three.js : (X, Y, Z) → BCF : (X, -Z, Y)
-                    const bcfPosX =  def.camX,  bcfPosY = -def.camZ,  bcfPosZ =  def.camY;
-                    const bcfDirX =  def.dirX,  bcfDirY = -def.dirZ,  bcfDirZ =  def.dirY;
-                    const bcfUpX  =  def.upX,   bcfUpY  = -def.upZ,   bcfUpZ  =  def.upY;
-                    folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo Guid="${def.id}"><PerspectiveCamera><CameraViewPoint><X>${bcfPosX}</X><Y>${bcfPosY}</Y><Z>${bcfPosZ}</Z></CameraViewPoint><CameraDirection><X>${bcfDirX}</X><Y>${bcfDirY}</Y><Z>${bcfDirZ}</Z></CameraDirection><CameraUpVector><X>${bcfUpX}</X><Y>${bcfUpY}</Y><Z>${bcfUpZ}</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
-                    folder.file("viewpoints.bcfv", "viewpoint.bcfv"); // index requis par certains readers
+                    // Three.js (X,Y,Z) → BCF (X,-Z,Y)
+                    const bcfPosX =  def.camX, bcfPosY = -def.camZ, bcfPosZ =  def.camY;
+                    const bcfDirX =  def.dirX, bcfDirY = -def.dirZ, bcfDirZ =  def.dirY;
+                    const bcfUpX  =  def.upX,  bcfUpY  = -def.upZ,  bcfUpZ  =  def.upY;
+                    folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo Guid="${viewpointGuid}"><PerspectiveCamera><CameraViewPoint><X>${bcfPosX}</X><Y>${bcfPosY}</Y><Z>${bcfPosZ}</Z></CameraViewPoint><CameraDirection><X>${bcfDirX}</X><Y>${bcfDirY}</Y><Z>${bcfDirZ}</Z></CameraDirection><CameraUpVector><X>${bcfUpX}</X><Y>${bcfUpY}</Y><Z>${bcfUpZ}</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
                 }
 
                 if (def.image) {
