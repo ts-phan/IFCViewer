@@ -24,19 +24,20 @@
         /* ── 1. Drawer latéral gauche ── */
         #top-bar {
             position: fixed;
-            top: 0; left: 0;
-            width: 220px;
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            left: 0;
+            width: 210px;
             z-index: 40;
             display: flex; flex-direction: column; gap: 8px;
             background: rgba(255,255,255,0.97);
-            padding: calc(56px + 10vh) 14px 16px 14px;
+            padding: 52px 14px 16px 14px;
             box-shadow: 3px 0 20px rgba(0,0,0,0.18);
             backdrop-filter: blur(10px);
             transform: translateX(0);
             transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
             overflow-y: visible;
             box-sizing: border-box;
-            border-bottom-right-radius: 16px;
+            border-radius: 0 0 16px 0;
         }
         body.menu-closed #top-bar {
             transform: translateX(-100%);
@@ -65,7 +66,7 @@
         /* ── Bouton hamburger fixe — sous le notch ── */
         #btn-collapse-topbar {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            top: calc(env(safe-area-inset-top, 0px) + 58px);
             left: 10px; z-index: 50;
             background: rgba(255,255,255,0.97);
             border: none; border-radius: 8px;
@@ -77,6 +78,25 @@
         }
         #btn-collapse-topbar:active { background: #f0f0f0; }
 
+        /* ── 2. Top-action-bar — status centré pleine largeur ── */
+        #top-action-bar {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            left: 0; right: 0;
+            z-index: 15;
+            display: flex;
+            justify-content: center;
+            padding: 0 14px;
+            pointer-events: none;
+        }
+        #status-bar {
+            background: rgba(0,0,0,0.6); color: white; padding: 6px 18px;
+            border-radius: 20px; font-size: 0.8em;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; text-align: center;
+            transition: opacity 0.5s ease-out;
+            opacity: 1; max-width: 80vw;
+        }
         input[type="file"] { display: none; }
 
         .btn-action {
@@ -91,49 +111,9 @@
         .btn-action.danger  { background: #dc3545; }
         .btn-action.warning { background: #ffc107; color: #333; }
 
-        /* ── 2. Top-action-bar — sous le notch, aligné avec le hamburger ── */
-        #top-action-bar {
-            position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
-            left: 58px; right: 14px;
-            z-index: 15;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        #status-bar {
-            flex: 1;
-            background: rgba(0,0,0,0.6); color: white; padding: 6px 12px;
-            border-radius: 20px; font-size: 0.8em;
-            pointer-events: none; white-space: nowrap; overflow: hidden;
-            text-overflow: ellipsis; text-align: center;
-            transition: opacity 0.5s ease-out;
-            display: block; opacity: 1;
-            min-width: 0;
-        }
-        #btn-supprimer-tout-top,
-        #btn-exporter-bcf-top {
-            flex-shrink: 0;
-            border: none; border-radius: 20px;
-            font-size: 0.75em; font-weight: bold;
-            padding: 6px 10px; cursor: pointer;
-            display: flex; align-items: center; gap: 4px;
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-            height: 30px;
-        }
-        #btn-supprimer-tout-top {
-            background: #dc3545; color: white;
-        }
-        #btn-supprimer-tout-top:active { filter: brightness(0.9); }
-        #btn-exporter-bcf-top {
-            background: #28a745; color: white;
-        }
-        #btn-exporter-bcf-top:active { filter: brightness(0.9); }
-
         #btn-reset-view {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            top: calc(env(safe-area-inset-top, 0px) + 58px);
             right: 15px; z-index: 15; display: none;
             background: rgba(255,255,255,0.95); border: none; border-radius: 50%;
             width: 38px; height: 38px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -184,6 +164,7 @@
             padding: 5px 9px; cursor: pointer;
             display: flex; align-items: center; gap: 4px;
             white-space: nowrap;
+            margin-left: -4px;
         }
         #sheet-bar #btn-supprimer-tout-top:active { filter: brightness(0.9); }
 
@@ -264,11 +245,11 @@
             font-size: 1.3em; color: #ccc; background: #f8f9fa;
         }
         
-        /* Repli explicite si safe-area-inset-top non exposé (Safari navigateur) */
         @supports (padding-top: constant(safe-area-inset-top)) {
-            #btn-collapse-topbar { top: calc(constant(safe-area-inset-top) + 10px); }
+            #btn-collapse-topbar { top: calc(constant(safe-area-inset-top) + 58px); }
             #top-action-bar      { top: calc(constant(safe-area-inset-top) + 10px); }
-            #btn-reset-view      { top: calc(constant(safe-area-inset-top) + 60px); }
+            #top-bar             { top: calc(constant(safe-area-inset-top) + 10px); }
+            #btn-reset-view      { top: calc(constant(safe-area-inset-top) + 58px); }
         }
         #modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -314,14 +295,12 @@
 
     <!-- Drawer latéral gauche -->
     <div id="top-bar">
-        <span class="drawer-label">Projet</span>
-        <input type="text" id="nom-projet" placeholder="Nom du projet...">
-        <span class="drawer-label" style="margin-top:6px">Actions</span>
+        <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc, .ifczip"></label>
-        <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
+        <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
     </div>
 
@@ -531,7 +510,7 @@
 
         // --- CHARGEMENT IFC ---
         document.getElementById('btn-exemple').addEventListener('click', async () => {
-            afficherStatut("⏳ Chargement de l'exemple...");
+            afficherStatut("⏳ Chargement de l'exemple IFC...");
             try {
                 await viewer.IFC.loadIfcUrl('./sample/sample.ifc', true);
                 const camControls = viewer.context.ifcCamera.cameraControls;
@@ -541,7 +520,66 @@
                 document.getElementById('btn-reset-view').style.display = 'flex';
                 document.body.classList.add('menu-closed');
                 recreerMarqueurs();
-                afficherStatut("✅ Exemple chargé. Double-cliquez pour annoter.", 15000);
+                afficherStatut("⏳ Chargement des annotations BCF...");
+
+                // Charger le BCF sample
+                try {
+                    const reponse = await fetch('./sample/sample.bcfzip.zip');
+                    if (!reponse.ok) throw new Error('BCF introuvable');
+                    const blob = await reponse.blob();
+                    const zip = await JSZip.loadAsync(blob);
+                    const defautsParGuid = {};
+                    for (const path in zip.files) {
+                        if (zip.files[path].dir) continue;
+                        if (path === 'project.bcf') {
+                            const xml = await zip.files[path].async("string");
+                            const doc = new DOMParser().parseFromString(xml, "text/xml");
+                            const nom = doc.querySelector("Name")?.textContent;
+                            if (nom) document.getElementById('nom-projet').value = nom;
+                            continue;
+                        }
+                        const parts = path.split('/');
+                        const guid = parts[0];
+                        if (!guid || path.indexOf('/') === -1) continue;
+                        if (!defautsParGuid[guid]) defautsParGuid[guid] = { id: guid, type: "Issue" };
+                        if (path.endsWith('markup.bcf')) {
+                            const xml = await zip.files[path].async("string");
+                            const doc = new DOMParser().parseFromString(xml, "text/xml");
+                            defautsParGuid[guid].titre = doc.querySelector("Title")?.textContent || "Défaut";
+                            let desc = doc.querySelector("Description")?.textContent || "";
+                            const m = desc.match(/\[LASER:([^;]+);([^;]+);([^\]]+)\]/);
+                            if (m) { defautsParGuid[guid].x = parseFloat(m[1]); defautsParGuid[guid].y = parseFloat(m[2]); defautsParGuid[guid].z = parseFloat(m[3]); desc = desc.replace(m[0], '').trim(); }
+                            defautsParGuid[guid].desc = desc;
+                        } else if (path.endsWith('viewpoint.bcfv')) {
+                            const xml = await zip.files[path].async("string");
+                            const doc = new DOMParser().parseFromString(xml, "text/xml");
+                            const pos = doc.querySelector("CameraViewPoint"); const dir = doc.querySelector("CameraDirection");
+                            if (pos && dir) { defautsParGuid[guid].camX = parseFloat(pos.querySelector("X").textContent); defautsParGuid[guid].camY = parseFloat(pos.querySelector("Y").textContent); defautsParGuid[guid].camZ = parseFloat(pos.querySelector("Z").textContent); defautsParGuid[guid].dirX = parseFloat(dir.querySelector("X").textContent); defautsParGuid[guid].dirY = parseFloat(dir.querySelector("Y").textContent); defautsParGuid[guid].dirZ = parseFloat(dir.querySelector("Z").textContent); }
+                        } else if (path.endsWith('snapshot.png')) {
+                            const b = await zip.files[path].async("blob");
+                            const reader = new FileReader();
+                            reader.readAsDataURL(b);
+                            reader.onloadend = () => { defautsParGuid[guid].image = reader.result; };
+                        }
+                    }
+                    setTimeout(() => {
+                        Object.values(defautsParGuid).forEach(def => {
+                            if (def.titre) {
+                                if (def.x !== undefined && !isNaN(def.x)) {
+                                    const marqueur = new Mesh(geometrieMarqueur, materiauMarqueur);
+                                    marqueur.position.set(def.x, def.y, def.z);
+                                    viewer.context.getScene().add(marqueur);
+                                    def.mesh3D = marqueur;
+                                }
+                                listeDefauts.push(def);
+                            }
+                        });
+                        rafraichirListeDefauts();
+                        afficherStatut("✅ Exemple chargé avec annotations. Double-cliquez pour annoter.", 15000);
+                    }, 500);
+                } catch(eBcf) {
+                    afficherStatut("✅ Exemple chargé. Double-cliquez pour annoter.", 15000);
+                }
             } catch (err) { alert("Erreur chargement exemple : " + err.message); }
         });
 
