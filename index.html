@@ -570,8 +570,26 @@
                         } else if (path.endsWith('viewpoint.bcfv')) {
                             const xml = await zip.files[path].async("string");
                             const doc = new DOMParser().parseFromString(xml, "text/xml");
-                            const pos = doc.querySelector("CameraViewPoint"); const dir = doc.querySelector("CameraDirection");
-                            if (pos && dir) { defautsParGuid[guid].camX = parseFloat(pos.querySelector("X").textContent); defautsParGuid[guid].camY = parseFloat(pos.querySelector("Y").textContent); defautsParGuid[guid].camZ = parseFloat(pos.querySelector("Z").textContent); defautsParGuid[guid].dirX = parseFloat(dir.querySelector("X").textContent); defautsParGuid[guid].dirY = parseFloat(dir.querySelector("Y").textContent); defautsParGuid[guid].dirZ = parseFloat(dir.querySelector("Z").textContent); }
+                            const pos = doc.querySelector("CameraViewPoint");
+                            const dir = doc.querySelector("CameraDirection");
+                            if (pos && dir) {
+                                // Reconversion BCF (Z=haut) → Three.js (Y=haut) : (X,Y,Z) → (X,Z,-Y)
+                                const pX = parseFloat(pos.querySelector("X").textContent);
+                                const pY = parseFloat(pos.querySelector("Y").textContent);
+                                const pZ = parseFloat(pos.querySelector("Z").textContent);
+                                defautsParGuid[guid].camX =  pX;
+                                defautsParGuid[guid].camY =  pZ;
+                                defautsParGuid[guid].camZ = -pY;
+                                const dX = parseFloat(dir.querySelector("X").textContent);
+                                const dY = parseFloat(dir.querySelector("Y").textContent);
+                                const dZ = parseFloat(dir.querySelector("Z").textContent);
+                                defautsParGuid[guid].dirX =  dX;
+                                defautsParGuid[guid].dirY =  dZ;
+                                defautsParGuid[guid].dirZ = -dY;
+                                defautsParGuid[guid].upX = 0;
+                                defautsParGuid[guid].upY = 1;
+                                defautsParGuid[guid].upZ = 0;
+                            }
                         } else if (path.endsWith('snapshot.png')) {
                             const b = await zip.files[path].async("blob");
                             await new Promise(resolve => {
@@ -677,12 +695,23 @@
                         const pos = doc.querySelector("CameraViewPoint");
                         const dir = doc.querySelector("CameraDirection");
                         if (pos && dir) {
-                            defautsParGuid[guid].camX = parseFloat(pos.querySelector("X").textContent);
-                            defautsParGuid[guid].camY = parseFloat(pos.querySelector("Y").textContent);
-                            defautsParGuid[guid].camZ = parseFloat(pos.querySelector("Z").textContent);
-                            defautsParGuid[guid].dirX = parseFloat(dir.querySelector("X").textContent);
-                            defautsParGuid[guid].dirY = parseFloat(dir.querySelector("Y").textContent);
-                            defautsParGuid[guid].dirZ = parseFloat(dir.querySelector("Z").textContent);
+                            // Reconversion BCF (Z=haut) → Three.js (Y=haut) : (X,Y,Z) → (X,Z,-Y)
+                            const pX = parseFloat(pos.querySelector("X").textContent);
+                            const pY = parseFloat(pos.querySelector("Y").textContent);
+                            const pZ = parseFloat(pos.querySelector("Z").textContent);
+                            defautsParGuid[guid].camX =  pX;
+                            defautsParGuid[guid].camY =  pZ;
+                            defautsParGuid[guid].camZ = -pY;
+                            const dX = parseFloat(dir.querySelector("X").textContent);
+                            const dY = parseFloat(dir.querySelector("Y").textContent);
+                            const dZ = parseFloat(dir.querySelector("Z").textContent);
+                            defautsParGuid[guid].dirX =  dX;
+                            defautsParGuid[guid].dirY =  dZ;
+                            defautsParGuid[guid].dirZ = -dY;
+                            // upVector Three.js toujours (0,1,0)
+                            defautsParGuid[guid].upX = 0;
+                            defautsParGuid[guid].upY = 1;
+                            defautsParGuid[guid].upZ = 0;
                         }
                     } else if (path.endsWith('snapshot.png')) {
                         // Lecture async correcte : convertir en Promise pour attendre la fin
