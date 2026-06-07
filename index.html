@@ -299,7 +299,7 @@
         <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc,.ifczip,application/octet-stream" onchange="if(this.files[0]&&!/\.(ifc|ifczip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .ifc ou .ifczip');this.value=''}"></label>
-        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf ou .bcfzip');this.value=''}"></label>
+        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip,.bcfzip.zip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip|bcfzip.zip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf ou .bcfzip ou .bcfzip.zip');this.value=''}"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
@@ -929,6 +929,8 @@
                 folder.file("markup.bcf", `<?xml version="1.0" encoding="UTF-8"?><Markup><Topic Guid="${def.id}" TopicType="${def.type}" TopicStatus="Open"><Title>${def.titre}</Title><Index>${index+1}</Index><CreationDate>${new Date().toISOString()}</CreationDate><CreationAuthor>Auditeur</CreationAuthor><Description>${(def.desc || "") + codeLaser}</Description></Topic></Markup>`);
                 
                 if (def.camX !== undefined) {
+
+                    
                     folder.file("viewpoint.bcfv", `<?xml version="1.0" encoding="UTF-8"?><VisualizationInfo><PerspectiveCamera><CameraViewPoint><X>${def.camX}</X><Y>${def.camY}</Y><Z>${def.camZ}</Z></CameraViewPoint><CameraDirection><X>${def.dirX}</X><Y>${def.dirY}</Y><Z>${def.dirZ}</Z></CameraDirection><CameraUpVector><X>${def.upX}</X><Y>${def.upY}</Y><Z>${def.upZ}</Z></CameraUpVector><FieldOfView>60</FieldOfView></PerspectiveCamera></VisualizationInfo>`);
                 }
 
