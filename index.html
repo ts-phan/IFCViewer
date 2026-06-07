@@ -24,18 +24,19 @@
         /* ── 1. Drawer latéral gauche ── */
         #top-bar {
             position: fixed;
-            top: 0; left: 0; bottom: 0;
-            width: 260px;
+            top: 0; left: 0;
+            width: 220px;
             z-index: 40;
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column; gap: 8px;
             background: rgba(255,255,255,0.97);
-            padding: calc(56px + 10vh) 14px 20px 14px;  /* 56px hamburger + 10vh décalage */
+            padding: calc(56px + 10vh) 14px 16px 14px;
             box-shadow: 3px 0 20px rgba(0,0,0,0.18);
             backdrop-filter: blur(10px);
             transform: translateX(0);
             transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-            overflow-y: auto;
+            overflow-y: visible;
             box-sizing: border-box;
+            border-bottom-right-radius: 16px;
         }
         body.menu-closed #top-bar {
             transform: translateX(-100%);
@@ -79,10 +80,10 @@
         input[type="file"] { display: none; }
 
         .btn-action {
-            background: #007bff; color: white; border: none; padding: 10px 12px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;
+            background: #007bff; color: white; border: none; padding: 7px 10px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.78em;
             text-align: center; white-space: nowrap; transition: 0.2s; width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
             box-sizing: border-box;
         }
         .btn-action:active { filter: brightness(0.9); }
@@ -132,11 +133,11 @@
 
         #btn-reset-view {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 60px);
+            top: calc(env(safe-area-inset-top, 0px) + 10px);
             right: 15px; z-index: 15; display: none;
             background: rgba(255,255,255,0.95); border: none; border-radius: 50%;
-            width: 44px; height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            font-size: 1.3em; cursor: pointer; align-items: center; justify-content: center;
+            width: 38px; height: 38px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 1.1em; cursor: pointer; align-items: center; justify-content: center;
         }
 
         /* ── 3. Bottom-sheet collé au bas, sans notch ── */
@@ -170,17 +171,17 @@
             grid-template-columns: auto 1fr;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
+            padding: 5px 10px;
             background: rgba(255,255,255,0.97);
             box-shadow: 0 -3px 16px rgba(0,0,0,0.15);
             backdrop-filter: blur(10px);
-            min-height: 50px;
+            min-height: 36px;
         }
         #sheet-bar #btn-supprimer-tout-top {
             border: none; border-radius: 8px;
             background: #dc3545; color: white;
-            font-size: 0.78em; font-weight: bold;
-            padding: 7px 11px; cursor: pointer;
+            font-size: 0.72em; font-weight: bold;
+            padding: 5px 9px; cursor: pointer;
             display: flex; align-items: center; gap: 4px;
             white-space: nowrap;
         }
@@ -212,7 +213,7 @@
             display: flex; flex-direction: column; gap: 1px; overflow: hidden;
         }
         .defaut-en-tete {
-            font-weight: 700; color: #222; font-size: 0.85em;
+            font-weight: 700; color: #222; font-size: 0.76em;
             display: flex; align-items: center; gap: 5px; overflow: hidden;
         }
         .defaut-titre-txt {
@@ -225,11 +226,11 @@
         .badge-type.Issue   { background: #cfe2ff; color: #084298; }
         .badge-type.Warning { background: #fff3cd; color: #856404; }
         .defaut-date {
-            font-size: 0.72em; color: #888;
+            font-size: 0.63em; color: #888;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .defaut-desc {
-            font-size: 0.78em; color: #555;
+            font-size: 0.68em; color: #555;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -318,6 +319,7 @@
         <span class="drawer-label" style="margin-top:6px">Actions</span>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc, .ifczip"></label>
+        <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
@@ -332,7 +334,7 @@
     <div id="bottom-sheet">
         <div id="liste-container"></div>
         <div id="sheet-bar">
-            <button id="btn-supprimer-tout-top" title="Supprimer toutes les annotations">🗑 Tout</button>
+            <button id="btn-supprimer-tout-top" title="Supprimer toutes les annotations">🗑 Supprimer tout</button>
             <button id="btn-toggle-sheet">▼ Annotations (0)</button>
         </div>
     </div>
@@ -528,6 +530,21 @@
         });
 
         // --- CHARGEMENT IFC ---
+        document.getElementById('btn-exemple').addEventListener('click', async () => {
+            afficherStatut("⏳ Chargement de l'exemple...");
+            try {
+                await viewer.IFC.loadIfcUrl('./sample/sample.ifc', true);
+                const camControls = viewer.context.ifcCamera.cameraControls;
+                const p = new Vector3(); const t = new Vector3();
+                camControls.getPosition(p); camControls.getTarget(t);
+                homeView = { position: p, target: t };
+                document.getElementById('btn-reset-view').style.display = 'flex';
+                document.body.classList.add('menu-closed');
+                recreerMarqueurs();
+                afficherStatut("✅ Exemple chargé. Double-cliquez pour annoter.", 15000);
+            } catch (err) { alert("Erreur chargement exemple : " + err.message); }
+        });
+
         document.getElementById('upload-ifc').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
