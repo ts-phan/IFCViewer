@@ -299,7 +299,7 @@
         <button class="btn-action" id="btn-exemple">📦 Exemple</button>
         <button class="btn-action warning" id="btn-nouveau">✨ Nouveau projet</button>
         <label class="btn-action">📂 Charger IFC<input type="file" id="upload-ifc" accept=".ifc,.ifczip,application/octet-stream" onchange="if(this.files[0]&&!/\.(ifc|ifczip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .ifc ou .ifczip');this.value=''}"></label>
-        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip,.zip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip|bcfzip\.zip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf, .bcfzip ou .bcfzip.zip');this.value=''}"></label>
+        <label class="btn-action">📥 Importer BCF<input type="file" id="upload-bcf" accept=".bcf,.bcfzip,.bcfzip.zip" onchange="if(this.files[0]&&!/\.(bcf|bcfzip|bcfzip.zip)$/i.test(this.files[0].name)){alert('Format non supporté. Choisissez un fichier .bcf, .bcfzip ou .bcfzip.zip');this.value=''}"></label>
         <span class="drawer-label" style="margin-top:6px">Annotations</span>
         <input type="text" id="nom-projet" placeholder="Nom du projet...">
         <button class="btn-action success" id="btn-exporter-bcf-drawer">💾 Exporter BCF</button>
