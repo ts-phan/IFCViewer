@@ -541,7 +541,7 @@
 
                 // Charger le BCF sample
                 try {
-                    const reponseBcf = await fetch('./sample/sample.bcfzip.zip');
+                    const reponseBcf = await fetch('./sample/sample.bcfzip');
                     if (!reponseBcf.ok) throw new Error('BCF introuvable');
                     const bcfBlob = await reponseBcf.blob();
                     const zip = await JSZip.loadAsync(bcfBlob);
