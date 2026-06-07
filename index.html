@@ -24,13 +24,13 @@
         /* ── 1. Drawer latéral gauche ── */
         #top-bar {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 10px);
+            top: calc(env(safe-area-inset-top, 0px) + 58px);
             left: 0;
             width: 210px;
             z-index: 40;
             display: flex; flex-direction: column; gap: 8px;
             background: rgba(255,255,255,0.97);
-            padding: 52px 14px 16px 14px;
+            padding: 12px 14px 16px 14px;
             box-shadow: 3px 0 20px rgba(0,0,0,0.18);
             backdrop-filter: blur(10px);
             transform: translateX(0);
@@ -164,7 +164,7 @@
             padding: 5px 9px; cursor: pointer;
             display: flex; align-items: center; gap: 4px;
             white-space: nowrap;
-            margin-left: -4px;
+            margin-left: -20px;
         }
         #sheet-bar #btn-supprimer-tout-top:active { filter: brightness(0.9); }
 
@@ -183,8 +183,8 @@
         .defaut-item {
             background: white;
             border-left: 3px solid #dc3545;
-            display: flex; align-items: center; gap: 8px;
-            padding: 8px 10px;
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 6px 10px;
             border-bottom: 1px solid #f0f0f0;
         }
         .defaut-item:last-child { border-bottom: none; }
@@ -212,7 +212,8 @@
         }
         .defaut-desc {
             font-size: 0.68em; color: #555;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: pre-wrap; word-break: break-word;
+            overflow: visible;
         }
 
         /* Droite : boutons + photo côte à côte */
@@ -248,7 +249,7 @@
         @supports (padding-top: constant(safe-area-inset-top)) {
             #btn-collapse-topbar { top: calc(constant(safe-area-inset-top) + 58px); }
             #top-action-bar      { top: calc(constant(safe-area-inset-top) + 10px); }
-            #top-bar             { top: calc(constant(safe-area-inset-top) + 10px); }
+            #top-bar             { top: calc(constant(safe-area-inset-top) + 58px); }
             #btn-reset-view      { top: calc(constant(safe-area-inset-top) + 58px); }
         }
         #modal-overlay {
@@ -512,22 +513,38 @@
         document.getElementById('btn-exemple').addEventListener('click', async () => {
             afficherStatut("⏳ Chargement de l'exemple IFC...");
             try {
-                await viewer.IFC.loadIfcUrl('./sample/sample.ifc', true);
+                // Décharger les annotations BCF en cours
+                listeDefauts.forEach(def => { if (def.mesh3D) viewer.context.getScene().remove(def.mesh3D); });
+                listeDefauts = [];
+                rafraichirListeDefauts();
+
+                // Charger le .ifczip sample
+                const reponseIfc = await fetch('./sample/sample.ifczip');
+                if (!reponseIfc.ok) throw new Error('sample.ifczip introuvable');
+                const ifcBlob = await reponseIfc.blob();
+                const ifcZip = await JSZip.loadAsync(ifcBlob);
+                const nomIfc = Object.keys(ifcZip.files).find(n => n.toLowerCase().endsWith('.ifc'));
+                if (!nomIfc) throw new Error('Pas de fichier .ifc dans sample.ifczip');
+                const ifcFileBlob = await ifcZip.files[nomIfc].async("blob");
+                const ifcFichier = new File([ifcFileBlob], nomIfc, { type: "application/octet-stream" });
+                const ifcUrl = URL.createObjectURL(ifcFichier);
+                await viewer.IFC.loadIfcUrl(ifcUrl, true);
+
                 const camControls = viewer.context.ifcCamera.cameraControls;
                 const p = new Vector3(); const t = new Vector3();
                 camControls.getPosition(p); camControls.getTarget(t);
                 homeView = { position: p, target: t };
                 document.getElementById('btn-reset-view').style.display = 'flex';
                 document.body.classList.add('menu-closed');
-                recreerMarqueurs();
+
                 afficherStatut("⏳ Chargement des annotations BCF...");
 
                 // Charger le BCF sample
                 try {
-                    const reponse = await fetch('./sample/sample.bcfzip.zip');
-                    if (!reponse.ok) throw new Error('BCF introuvable');
-                    const blob = await reponse.blob();
-                    const zip = await JSZip.loadAsync(blob);
+                    const reponseBcf = await fetch('./sample/sample.bcfzip.zip');
+                    if (!reponseBcf.ok) throw new Error('BCF introuvable');
+                    const bcfBlob = await reponseBcf.blob();
+                    const zip = await JSZip.loadAsync(bcfBlob);
                     const defautsParGuid = {};
                     for (const path in zip.files) {
                         if (zip.files[path].dir) continue;
@@ -588,6 +605,11 @@
             if (!file) return;
             afficherStatut("⏳ Chargement de la maquette...");
             try {
+                // Décharger les annotations BCF en cours
+                listeDefauts.forEach(def => { if (def.mesh3D) viewer.context.getScene().remove(def.mesh3D); });
+                listeDefauts = [];
+                rafraichirListeDefauts();
+
                 let fichierFinal = file; 
                 if (file.name.toLowerCase().endsWith('.ifczip')) {
                     const zip = await JSZip.loadAsync(file);
@@ -597,6 +619,7 @@
                 }
                 const url = URL.createObjectURL(fichierFinal);
                 await viewer.IFC.loadIfcUrl(url, true);
+                event.target.value = '';
                 
                 const camControls = viewer.context.ifcCamera.cameraControls;
                 const p = new Vector3();
@@ -609,10 +632,6 @@
                 // Fermer le drawer latéral
                 document.body.classList.add('menu-closed');
 
-                // Recréer les marqueurs 3D des défauts déjà en mémoire
-                recreerMarqueurs();
-
-                // Disparition de la barre après 15 secondes
                 afficherStatut("✅ Maquette chargée. Double-cliquez pour annoter.", 15000);
             } catch (err) { alert("Erreur IFC : " + err.message); } 
         });
@@ -688,8 +707,8 @@
                     rafraichirListeDefauts();
                     isSheetFolded = false;
                     bottomSheet.classList.remove('folded');
-                    
-                    // Disparition de la barre après 15 secondes
+                    event.target.value = '';
+                    document.body.classList.add('menu-closed');
                     afficherStatut("✅ BCF Importé.", 15000);
                 }, 500);
             } catch (err) { alert("Erreur BCF"); console.error(err); }
