@@ -11,12 +11,11 @@ const CACHE_STATIC  = `${CACHE_VERSION}-static`;
 const PRECACHE_URLS = [
     './',
     './index.html',
-    './css/style.css',
-    './js/app.js',
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png',
 	'./libs/jszip.min.js',
+	'./libs/viewer-bundle.js',
     // JSZip depuis CDN — tentera lors de la nav mais ne bloque pas l'install
 ];
 
